@@ -29,8 +29,8 @@ class Blog_PDA_GitHub_Updater {
     public function __construct($plugin_file) {
         $this->plugin_file = $plugin_file;
         $this->username = 'pereira-lui';
-        $this->repo = 'blog-pda';
-        $this->plugin_folder = 'blog-pda';
+        $this->repo = 'blog';
+        $this->plugin_folder = 'blog';
         $this->slug = $this->plugin_folder . '/' . basename($plugin_file);
 
         add_filter('pre_set_site_transient_update_plugins', [$this, 'check_update']);

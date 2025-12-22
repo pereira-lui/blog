@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: Blog PDA
- * Plugin URI: https://github.com/pereira-lui/blog-pda
+ * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com suporte a importação e atualização automática via GitHub.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -12,9 +12,9 @@
  * Requires PHP: 7.4
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * GitHub Plugin URI: https://github.com/pereira-lui/blog-pda
+ * GitHub Plugin URI: https://github.com/pereira-lui/blog
  * GitHub Branch: main
- * Update URI: https://github.com/pereira-lui/blog-pda
+ * Update URI: https://github.com/pereira-lui/blog
  */
 
 if (!defined('ABSPATH')) {
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.0.0');
+define('BLOG_PDA_VERSION', '1.0.1');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);

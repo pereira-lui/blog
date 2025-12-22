@@ -14,7 +14,7 @@ Este plugin cria um sistema completo de Blog para WordPress com:
 
 ## Instalação
 
-1. Faça upload da pasta `blog-pda` para `/wp-content/plugins/`
+1. Faça upload da pasta `blog` para `/wp-content/plugins/`
 2. Ative o plugin através do menu 'Plugins' no WordPress
 3. Vá em **Configurações > Links Permanentes** e clique em "Salvar alterações"
 
@@ -62,7 +62,7 @@ O plugin se atualiza automaticamente quando uma nova versão é publicada no Git
 ### Como publicar uma nova versão:
 
 1. Faça as alterações no código
-2. Atualize a versão no arquivo `blog-pda.php`:
+2. Atualize a versão no arquivo `blog.php`:
    ```php
    * Version: 1.0.1
    ```
@@ -80,8 +80,8 @@ O GitHub mantém automaticamente o histórico de todas as versões através das 
 ## Estrutura de Arquivos
 
 ```
-blog-pda/
-├── blog-pda.php              # Arquivo principal do plugin
+blog/
+├── blog.php                       # Arquivo principal do plugin
 ├── includes/
 │   └── class-github-updater.php   # Sistema de atualização via GitHub
 └── README.md
@@ -99,6 +99,10 @@ blog-pda/
 - **REST API** habilitada para uso com Gutenberg e integrações
 
 ## Changelog
+
+### 1.0.1
+- Reorganização: arquivos movidos para raiz da pasta do plugin
+- Arquivo principal renomeado para blog.php
 
 ### 1.0.0
 - Versão inicial
@@ -118,5 +122,5 @@ GPL v2 ou posterior
 
 ## Links
 
-- [Repositório GitHub](https://github.com/pereira-lui/blog-pda)
-- [Releases/Versões](https://github.com/pereira-lui/blog-pda/releases)
+- [Repositório GitHub](https://github.com/pereira-lui/blog)
+- [Releases/Versões](https://github.com/pereira-lui/blog/releases)
