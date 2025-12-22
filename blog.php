@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.1.2
+ * Version: 1.2.0
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.1.2');
+define('BLOG_PDA_VERSION', '1.2.0');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -388,6 +388,15 @@ final class Blog_PDA {
         
         add_submenu_page(
             'edit.php?post_type=blog_post',
+            __('Migrar Taxonomias', 'blog-pda'),
+            __('Migrar Taxonomias', 'blog-pda'),
+            'manage_options',
+            'blog-pda-migrate',
+            [$this, 'migrate_page_content']
+        );
+        
+        add_submenu_page(
+            'edit.php?post_type=blog_post',
             __('Configurações', 'blog-pda'),
             __('Configurações', 'blog-pda'),
             'manage_options',
@@ -447,22 +456,279 @@ final class Blog_PDA {
             <div class="card" style="max-width: 800px; padding: 20px; margin-top: 20px;">
                 <h2><?php _e('Após a Importação', 'blog-pda'); ?></h2>
                 <ol>
+                    <li><?php _e('Vá em <strong>Blog > Migrar Taxonomias</strong> para migrar categorias e tags', 'blog-pda'); ?></li>
                     <li><?php _e('Vá em <strong>Configurações > Links Permanentes</strong>', 'blog-pda'); ?></li>
                     <li><?php _e('Clique em <strong>Salvar alterações</strong> (sem mudar nada)', 'blog-pda'); ?></li>
-                    <li><?php _e('Isso irá atualizar as regras de rewrite', 'blog-pda'); ?></li>
                 </ol>
                 
                 <p>
-                    <a href="<?php echo admin_url('options-permalink.php'); ?>" class="button button-primary">
-                        <?php _e('Ir para Links Permanentes', 'blog-pda'); ?>
+                    <a href="<?php echo admin_url('edit.php?post_type=blog_post&page=blog-pda-migrate'); ?>" class="button button-primary">
+                        <?php _e('Migrar Categorias e Tags', 'blog-pda'); ?>
                     </a>
-                    <a href="<?php echo admin_url('edit.php?post_type=blog_post'); ?>" class="button">
-                        <?php _e('Ver Posts do Blog', 'blog-pda'); ?>
+                    <a href="<?php echo admin_url('options-permalink.php'); ?>" class="button">
+                        <?php _e('Links Permanentes', 'blog-pda'); ?>
                     </a>
                 </p>
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Migrate taxonomies page content
+     */
+    public function migrate_page_content() {
+        // Handle migration action
+        $message = '';
+        $message_type = '';
+        
+        if (isset($_POST['blog_pda_migrate_taxonomies']) && wp_verify_nonce($_POST['_wpnonce'], 'blog_pda_migrate')) {
+            $result = $this->migrate_taxonomies();
+            $message = $result['message'];
+            $message_type = $result['success'] ? 'success' : 'error';
+        }
+        
+        // Get stats
+        $stats = $this->get_taxonomy_stats();
+        ?>
+        <div class="wrap">
+            <h1><?php _e('Migrar Categorias e Tags', 'blog-pda'); ?></h1>
+            
+            <?php if ($message) : ?>
+            <div class="notice notice-<?php echo $message_type; ?> is-dismissible">
+                <p><?php echo $message; ?></p>
+            </div>
+            <?php endif; ?>
+            
+            <div class="card" style="max-width: 800px; padding: 20px;">
+                <h2><?php _e('Por que migrar?', 'blog-pda'); ?></h2>
+                <p><?php _e('Quando você importa posts usando o WP Import Export ou WordPress Importer, as categorias e tags são importadas usando as taxonomias padrão do WordPress (<code>category</code> e <code>post_tag</code>).', 'blog-pda'); ?></p>
+                <p><?php _e('Este plugin usa taxonomias personalizadas (<code>blog_category</code> e <code>blog_tag</code>). Esta ferramenta migra automaticamente as taxonomias dos posts importados.', 'blog-pda'); ?></p>
+            </div>
+            
+            <div class="card" style="max-width: 800px; padding: 20px; margin-top: 20px;">
+                <h2><?php _e('Status Atual', 'blog-pda'); ?></h2>
+                <table class="widefat" style="margin-top: 15px;">
+                    <thead>
+                        <tr>
+                            <th><?php _e('Taxonomia', 'blog-pda'); ?></th>
+                            <th><?php _e('Quantidade', 'blog-pda'); ?></th>
+                            <th><?php _e('Status', 'blog-pda'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong><?php _e('Categorias WP (category)', 'blog-pda'); ?></strong></td>
+                            <td><?php echo $stats['wp_categories']; ?></td>
+                            <td><?php echo $stats['wp_categories'] > 0 ? '<span style="color: orange;">⚠️ ' . __('Precisa migrar', 'blog-pda') . '</span>' : '<span style="color: green;">✓ ' . __('OK', 'blog-pda') . '</span>'; ?></td>
+                        </tr>
+                        <tr>
+                            <td><strong><?php _e('Tags WP (post_tag)', 'blog-pda'); ?></strong></td>
+                            <td><?php echo $stats['wp_tags']; ?></td>
+                            <td><?php echo $stats['wp_tags'] > 0 ? '<span style="color: orange;">⚠️ ' . __('Precisa migrar', 'blog-pda') . '</span>' : '<span style="color: green;">✓ ' . __('OK', 'blog-pda') . '</span>'; ?></td>
+                        </tr>
+                        <tr style="background: #f0f0f1;">
+                            <td><strong><?php _e('Categorias Blog (blog_category)', 'blog-pda'); ?></strong></td>
+                            <td><?php echo $stats['blog_categories']; ?></td>
+                            <td><span style="color: green;">✓ <?php _e('Taxonomia do plugin', 'blog-pda'); ?></span></td>
+                        </tr>
+                        <tr style="background: #f0f0f1;">
+                            <td><strong><?php _e('Tags Blog (blog_tag)', 'blog-pda'); ?></strong></td>
+                            <td><?php echo $stats['blog_tags']; ?></td>
+                            <td><span style="color: green;">✓ <?php _e('Taxonomia do plugin', 'blog-pda'); ?></span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <p style="margin-top: 15px;">
+                    <strong><?php _e('Posts do blog:', 'blog-pda'); ?></strong> <?php echo $stats['total_posts']; ?><br>
+                    <strong><?php _e('Posts com categorias WP:', 'blog-pda'); ?></strong> <?php echo $stats['posts_with_wp_categories']; ?><br>
+                    <strong><?php _e('Posts com tags WP:', 'blog-pda'); ?></strong> <?php echo $stats['posts_with_wp_tags']; ?>
+                </p>
+            </div>
+            
+            <?php if ($stats['wp_categories'] > 0 || $stats['wp_tags'] > 0 || $stats['posts_with_wp_categories'] > 0 || $stats['posts_with_wp_tags'] > 0) : ?>
+            <div class="card" style="max-width: 800px; padding: 20px; margin-top: 20px;">
+                <h2><?php _e('Executar Migração', 'blog-pda'); ?></h2>
+                <p><?php _e('Clique no botão abaixo para migrar todas as categorias e tags dos posts do blog para as taxonomias do plugin.', 'blog-pda'); ?></p>
+                
+                <div class="notice notice-warning inline" style="margin: 15px 0;">
+                    <p><strong><?php _e('Atenção:', 'blog-pda'); ?></strong> <?php _e('Esta ação irá:', 'blog-pda'); ?></p>
+                    <ul style="list-style-type: disc; margin-left: 20px;">
+                        <li><?php _e('Criar as categorias/tags equivalentes nas taxonomias do blog', 'blog-pda'); ?></li>
+                        <li><?php _e('Associar os posts às novas taxonomias', 'blog-pda'); ?></li>
+                        <li><?php _e('Remover as associações com taxonomias padrão do WordPress', 'blog-pda'); ?></li>
+                    </ul>
+                </div>
+                
+                <form method="post">
+                    <?php wp_nonce_field('blog_pda_migrate'); ?>
+                    <p>
+                        <button type="submit" name="blog_pda_migrate_taxonomies" class="button button-primary button-hero">
+                            <?php _e('🔄 Migrar Categorias e Tags Agora', 'blog-pda'); ?>
+                        </button>
+                    </p>
+                </form>
+            </div>
+            <?php else : ?>
+            <div class="card" style="max-width: 800px; padding: 20px; margin-top: 20px;">
+                <h2 style="color: green;">✓ <?php _e('Tudo Certo!', 'blog-pda'); ?></h2>
+                <p><?php _e('Não há categorias ou tags para migrar. Todos os posts do blog já estão usando as taxonomias corretas.', 'blog-pda'); ?></p>
+            </div>
+            <?php endif; ?>
+        </div>
+        <?php
+    }
+
+    /**
+     * Get taxonomy statistics
+     */
+    private function get_taxonomy_stats() {
+        global $wpdb;
+        
+        // Get blog post IDs
+        $blog_post_ids = get_posts([
+            'post_type' => 'blog_post',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'post_status' => 'any'
+        ]);
+        
+        // Count WP categories used by blog posts
+        $wp_categories = 0;
+        $posts_with_wp_categories = 0;
+        $wp_tags = 0;
+        $posts_with_wp_tags = 0;
+        
+        if (!empty($blog_post_ids)) {
+            foreach ($blog_post_ids as $post_id) {
+                $cats = wp_get_post_terms($post_id, 'category');
+                if (!empty($cats) && !is_wp_error($cats)) {
+                    $posts_with_wp_categories++;
+                    $wp_categories += count($cats);
+                }
+                
+                $tags = wp_get_post_terms($post_id, 'post_tag');
+                if (!empty($tags) && !is_wp_error($tags)) {
+                    $posts_with_wp_tags++;
+                    $wp_tags += count($tags);
+                }
+            }
+        }
+        
+        // Count blog taxonomies
+        $blog_categories = wp_count_terms(['taxonomy' => 'blog_category', 'hide_empty' => false]);
+        $blog_tags = wp_count_terms(['taxonomy' => 'blog_tag', 'hide_empty' => false]);
+        
+        return [
+            'total_posts' => count($blog_post_ids),
+            'wp_categories' => $wp_categories,
+            'wp_tags' => $wp_tags,
+            'posts_with_wp_categories' => $posts_with_wp_categories,
+            'posts_with_wp_tags' => $posts_with_wp_tags,
+            'blog_categories' => is_wp_error($blog_categories) ? 0 : $blog_categories,
+            'blog_tags' => is_wp_error($blog_tags) ? 0 : $blog_tags,
+        ];
+    }
+
+    /**
+     * Migrate taxonomies from WP default to blog custom
+     */
+    private function migrate_taxonomies() {
+        $migrated_categories = 0;
+        $migrated_tags = 0;
+        $migrated_posts = 0;
+        
+        // Get all blog posts
+        $blog_posts = get_posts([
+            'post_type' => 'blog_post',
+            'posts_per_page' => -1,
+            'post_status' => 'any'
+        ]);
+        
+        foreach ($blog_posts as $post) {
+            $post_updated = false;
+            
+            // Migrate categories
+            $wp_categories = wp_get_post_terms($post->ID, 'category');
+            if (!empty($wp_categories) && !is_wp_error($wp_categories)) {
+                foreach ($wp_categories as $wp_cat) {
+                    // Check if blog_category with same slug exists
+                    $blog_cat = get_term_by('slug', $wp_cat->slug, 'blog_category');
+                    
+                    if (!$blog_cat) {
+                        // Create new blog_category
+                        $new_term = wp_insert_term($wp_cat->name, 'blog_category', [
+                            'slug' => $wp_cat->slug,
+                            'description' => $wp_cat->description
+                        ]);
+                        
+                        if (!is_wp_error($new_term)) {
+                            $blog_cat_id = $new_term['term_id'];
+                            $migrated_categories++;
+                        }
+                    } else {
+                        $blog_cat_id = $blog_cat->term_id;
+                    }
+                    
+                    // Assign to post
+                    if (isset($blog_cat_id)) {
+                        wp_set_post_terms($post->ID, [$blog_cat_id], 'blog_category', true);
+                    }
+                }
+                
+                // Remove WP categories from post
+                wp_set_post_terms($post->ID, [], 'category');
+                $post_updated = true;
+            }
+            
+            // Migrate tags
+            $wp_tags = wp_get_post_terms($post->ID, 'post_tag');
+            if (!empty($wp_tags) && !is_wp_error($wp_tags)) {
+                foreach ($wp_tags as $wp_tag) {
+                    // Check if blog_tag with same slug exists
+                    $blog_tag = get_term_by('slug', $wp_tag->slug, 'blog_tag');
+                    
+                    if (!$blog_tag) {
+                        // Create new blog_tag
+                        $new_term = wp_insert_term($wp_tag->name, 'blog_tag', [
+                            'slug' => $wp_tag->slug,
+                            'description' => $wp_tag->description
+                        ]);
+                        
+                        if (!is_wp_error($new_term)) {
+                            $blog_tag_id = $new_term['term_id'];
+                            $migrated_tags++;
+                        }
+                    } else {
+                        $blog_tag_id = $blog_tag->term_id;
+                    }
+                    
+                    // Assign to post
+                    if (isset($blog_tag_id)) {
+                        wp_set_post_terms($post->ID, [$blog_tag_id], 'blog_tag', true);
+                    }
+                }
+                
+                // Remove WP tags from post
+                wp_set_post_terms($post->ID, [], 'post_tag');
+                $post_updated = true;
+            }
+            
+            if ($post_updated) {
+                $migrated_posts++;
+            }
+        }
+        
+        return [
+            'success' => true,
+            'message' => sprintf(
+                __('Migração concluída! %d categorias criadas, %d tags criadas, %d posts atualizados.', 'blog-pda'),
+                $migrated_categories,
+                $migrated_tags,
+                $migrated_posts
+            )
+        ];
     }
 
     /**
