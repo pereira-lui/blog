@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
- * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com suporte a importação e atualização automática via GitHub.
- * Version: 1.0.1
+ * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
+ * Version: 1.1.0
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.0.1');
+define('BLOG_PDA_VERSION', '1.1.0');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -82,6 +82,23 @@ final class Blog_PDA {
         
         // Add settings page
         add_action('admin_menu', [$this, 'add_admin_menu']);
+        
+        // Register settings
+        add_action('admin_init', [$this, 'register_settings']);
+        
+        // Enqueue frontend styles and scripts
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_frontend_assets']);
+        
+        // Register custom templates
+        add_filter('template_include', [$this, 'load_custom_templates']);
+        
+        // AJAX handler for load more
+        add_action('wp_ajax_blog_pda_load_more', [$this, 'ajax_load_more']);
+        add_action('wp_ajax_nopriv_blog_pda_load_more', [$this, 'ajax_load_more']);
+        
+        // Add featured post meta box
+        add_action('add_meta_boxes', [$this, 'add_featured_meta_box']);
+        add_action('save_post', [$this, 'save_featured_meta']);
         
         // Hide Rank Math SEO from Blog post type (optional)
         add_filter('rank_math/sitemap/post_type/blog_post', '__return_true');
@@ -499,6 +516,201 @@ final class Blog_PDA {
         </div>
         <?php
     }
+
+    /**
+     * Register plugin settings
+     */
+    public function register_settings() {
+        register_setting('blog_pda_settings', 'blog_pda_related_links');
+        register_setting('blog_pda_settings', 'blog_pda_videos');
+        register_setting('blog_pda_settings', 'blog_pda_podcasts');
+    }
+
+    /**
+     * Enqueue frontend assets
+     */
+    public function enqueue_frontend_assets() {
+        if (is_singular('blog_post') || is_post_type_archive('blog_post') || is_tax('blog_category') || is_tax('blog_tag')) {
+            wp_enqueue_style(
+                'blog-pda-style',
+                BLOG_PDA_PLUGIN_URL . 'assets/css/blog-style.css',
+                [],
+                BLOG_PDA_VERSION
+            );
+            
+            wp_enqueue_script(
+                'blog-pda-script',
+                BLOG_PDA_PLUGIN_URL . 'assets/js/blog-script.js',
+                [],
+                BLOG_PDA_VERSION,
+                true
+            );
+            
+            wp_localize_script('blog-pda-script', 'blogPdaVars', [
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('blog_pda_nonce')
+            ]);
+        }
+    }
+
+    /**
+     * Load custom templates
+     */
+    public function load_custom_templates($template) {
+        // Archive template
+        if (is_post_type_archive('blog_post') || is_tax('blog_category') || is_tax('blog_tag')) {
+            $custom_template = BLOG_PDA_PLUGIN_DIR . 'templates/archive-blog_post.php';
+            if (file_exists($custom_template)) {
+                return $custom_template;
+            }
+        }
+        
+        // Single template
+        if (is_singular('blog_post')) {
+            $custom_template = BLOG_PDA_PLUGIN_DIR . 'templates/single-blog_post.php';
+            if (file_exists($custom_template)) {
+                return $custom_template;
+            }
+        }
+        
+        return $template;
+    }
+
+    /**
+     * AJAX load more posts
+     */
+    public function ajax_load_more() {
+        check_ajax_referer('blog_pda_nonce', 'nonce');
+        
+        $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+        $per_page = isset($_POST['per_page']) ? intval($_POST['per_page']) : 9;
+        $exclude = isset($_POST['exclude']) ? intval($_POST['exclude']) : 0;
+        
+        $args = [
+            'post_type' => 'blog_post',
+            'posts_per_page' => $per_page,
+            'paged' => $page,
+            'post_status' => 'publish',
+            'orderby' => 'date',
+            'order' => 'DESC'
+        ];
+        
+        if ($exclude) {
+            $args['post__not_in'] = [$exclude];
+        }
+        
+        $query = new WP_Query($args);
+        
+        ob_start();
+        
+        if ($query->have_posts()) {
+            while ($query->have_posts()) {
+                $query->the_post();
+                $categories = get_the_terms(get_the_ID(), 'blog_category');
+                ?>
+                <article class="blog-post-card">
+                    <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
+                        <?php if (has_post_thumbnail()) : ?>
+                        <div class="blog-post-card-image">
+                            <?php the_post_thumbnail('medium_large'); ?>
+                            <?php if ($categories && !is_wp_error($categories)) : ?>
+                            <div class="blog-post-card-categories">
+                                <?php foreach (array_slice($categories, 0, 2) as $cat) : ?>
+                                    <span class="blog-category-tag"><?php echo esc_html($cat->name); ?></span>
+                                <?php endforeach; ?>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+                        <div class="blog-post-card-content">
+                            <h3 class="blog-post-card-title"><?php the_title(); ?></h3>
+                            <p class="blog-post-card-excerpt"><?php echo wp_trim_words(get_the_excerpt(), 15); ?></p>
+                        </div>
+                    </a>
+                </article>
+                <?php
+            }
+        }
+        
+        $html = ob_get_clean();
+        wp_reset_postdata();
+        
+        $total_pages = $query->max_num_pages;
+        $has_more = $page < $total_pages;
+        
+        wp_send_json_success([
+            'html' => $html,
+            'hasMore' => $has_more
+        ]);
+    }
+
+    /**
+     * Add featured post meta box
+     */
+    public function add_featured_meta_box() {
+        add_meta_box(
+            'blog_pda_featured',
+            __('Post em Destaque', 'blog-pda'),
+            [$this, 'featured_meta_box_callback'],
+            'blog_post',
+            'side',
+            'high'
+        );
+    }
+
+    /**
+     * Featured meta box callback
+     */
+    public function featured_meta_box_callback($post) {
+        wp_nonce_field('blog_pda_featured_nonce', 'blog_pda_featured_nonce');
+        $featured = get_post_meta($post->ID, '_blog_featured', true);
+        ?>
+        <label>
+            <input type="checkbox" name="blog_featured" value="1" <?php checked($featured, '1'); ?>>
+            <?php _e('Marcar como post em destaque na página do blog', 'blog-pda'); ?>
+        </label>
+        <?php
+    }
+
+    /**
+     * Save featured meta
+     */
+    public function save_featured_meta($post_id) {
+        if (!isset($_POST['blog_pda_featured_nonce']) || !wp_verify_nonce($_POST['blog_pda_featured_nonce'], 'blog_pda_featured_nonce')) {
+            return;
+        }
+        
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+        
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+        
+        // If this post is being set as featured, remove featured from other posts
+        if (isset($_POST['blog_featured']) && $_POST['blog_featured'] === '1') {
+            global $wpdb;
+            $wpdb->delete($wpdb->postmeta, ['meta_key' => '_blog_featured', 'meta_value' => '1']);
+            update_post_meta($post_id, '_blog_featured', '1');
+        } else {
+            delete_post_meta($post_id, '_blog_featured');
+        }
+    }
+}
+
+/**
+ * Calculate reading time
+ */
+function blog_pda_reading_time($content) {
+    $word_count = str_word_count(strip_tags($content));
+    $reading_time = ceil($word_count / 200); // Average reading speed
+    
+    if ($reading_time < 1) {
+        $reading_time = 1;
+    }
+    
+    return sprintf(_n('%d min de leitura', '%d min de leitura', $reading_time, 'blog-pda'), $reading_time);
 }
 
 /**
