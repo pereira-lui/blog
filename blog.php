@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.1.1');
+define('BLOG_PDA_VERSION', '1.1.2');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -103,6 +103,11 @@ final class Blog_PDA {
         // Filter content for classic editor compatibility
         add_filter('the_content', [$this, 'filter_blog_content'], 20);
         
+        // Hide default WordPress posts
+        add_action('admin_menu', [$this, 'hide_default_posts_menu']);
+        add_action('admin_bar_menu', [$this, 'hide_default_posts_admin_bar'], 999);
+        add_action('wp_dashboard_setup', [$this, 'hide_default_posts_dashboard']);
+        
         // Hide Rank Math SEO from Blog post type (optional)
         add_filter('rank_math/sitemap/post_type/blog_post', '__return_true');
     }
@@ -181,7 +186,7 @@ final class Blog_PDA {
             'has_archive'        => 'blog',
             'hierarchical'       => false,
             'menu_position'      => 5,
-            'menu_icon'          => 'dashicons-admin-post',
+            'menu_icon'          => 'dashicons-text-page',
             'supports'           => [
                 'title',
                 'editor',
@@ -326,10 +331,31 @@ final class Blog_PDA {
         ?>
         <style>
             #adminmenu .menu-icon-blog_post div.wp-menu-image:before {
-                content: '\f109';
+                content: '\f330';
             }
         </style>
         <?php
+    }
+
+    /**
+     * Hide default WordPress posts from admin menu
+     */
+    public function hide_default_posts_menu() {
+        remove_menu_page('edit.php'); // Remove Posts menu
+    }
+
+    /**
+     * Hide default WordPress posts from admin bar
+     */
+    public function hide_default_posts_admin_bar($wp_admin_bar) {
+        $wp_admin_bar->remove_node('new-post'); // Remove "+ New Post" from admin bar
+    }
+
+    /**
+     * Hide default posts widgets from dashboard
+     */
+    public function hide_default_posts_dashboard() {
+        remove_meta_box('dashboard_quick_press', 'dashboard', 'side'); // Remove Quick Draft
     }
 
     /**
