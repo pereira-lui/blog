@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.1.0');
+define('BLOG_PDA_VERSION', '1.1.1');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -99,6 +99,9 @@ final class Blog_PDA {
         // Add featured post meta box
         add_action('add_meta_boxes', [$this, 'add_featured_meta_box']);
         add_action('save_post', [$this, 'save_featured_meta']);
+        
+        // Filter content for classic editor compatibility
+        add_filter('the_content', [$this, 'filter_blog_content'], 20);
         
         // Hide Rank Math SEO from Blog post type (optional)
         add_filter('rank_math/sitemap/post_type/blog_post', '__return_true');
@@ -696,6 +699,54 @@ final class Blog_PDA {
         } else {
             delete_post_meta($post_id, '_blog_featured');
         }
+    }
+
+    /**
+     * Filter blog content for classic editor compatibility
+     * Makes embeds responsive and fixes common issues
+     */
+    public function filter_blog_content($content) {
+        // Only apply to blog posts
+        if (!is_singular('blog_post') && !is_post_type_archive('blog_post')) {
+            return $content;
+        }
+        
+        // Make YouTube embeds responsive
+        $content = preg_replace(
+            '/<iframe[^>]+src=["\']https?:\/\/(www\.)?(youtube\.com|youtu\.be)[^"\']+["\'][^>]*><\/iframe>/i',
+            '<div class="video-container">$0</div>',
+            $content
+        );
+        
+        // Make Vimeo embeds responsive
+        $content = preg_replace(
+            '/<iframe[^>]+src=["\']https?:\/\/(www\.)?vimeo\.com[^"\']+["\'][^>]*><\/iframe>/i',
+            '<div class="video-container">$0</div>',
+            $content
+        );
+        
+        // Make generic video iframes responsive (if not already wrapped)
+        $content = preg_replace(
+            '/(?<!<div class="video-container">)<iframe[^>]+(?:width|height)[^>]*><\/iframe>/i',
+            '<div class="video-container">$0</div>',
+            $content
+        );
+        
+        // Fix empty paragraphs
+        $content = preg_replace('/<p>\s*<\/p>/', '', $content);
+        $content = preg_replace('/<p>&nbsp;<\/p>/', '', $content);
+        
+        // Fix multiple br tags
+        $content = preg_replace('/(<br\s*\/?>\s*){3,}/', '<br><br>', $content);
+        
+        // Add loading lazy to images that don't have it
+        $content = preg_replace(
+            '/<img((?!loading)[^>]*)>/i',
+            '<img$1 loading="lazy">',
+            $content
+        );
+        
+        return $content;
     }
 }
 
