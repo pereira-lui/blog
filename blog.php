@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.2.0');
+define('BLOG_PDA_VERSION', '1.3.0');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -518,14 +518,14 @@ final class Blog_PDA {
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong><?php _e('Categorias WP (category)', 'blog-pda'); ?></strong></td>
-                            <td><?php echo $stats['wp_categories']; ?></td>
-                            <td><?php echo $stats['wp_categories'] > 0 ? '<span style="color: orange;">⚠️ ' . __('Precisa migrar', 'blog-pda') . '</span>' : '<span style="color: green;">✓ ' . __('OK', 'blog-pda') . '</span>'; ?></td>
+                            <td><strong><?php _e('Total Categorias WP (category)', 'blog-pda'); ?></strong></td>
+                            <td><?php echo $stats['wp_categories_total']; ?></td>
+                            <td><?php echo $stats['wp_categories_total'] > 0 ? '<span style="color: orange;">⚠️ ' . __('Serão copiadas', 'blog-pda') . '</span>' : '<span style="color: green;">✓ ' . __('Nenhuma', 'blog-pda') . '</span>'; ?></td>
                         </tr>
                         <tr>
-                            <td><strong><?php _e('Tags WP (post_tag)', 'blog-pda'); ?></strong></td>
-                            <td><?php echo $stats['wp_tags']; ?></td>
-                            <td><?php echo $stats['wp_tags'] > 0 ? '<span style="color: orange;">⚠️ ' . __('Precisa migrar', 'blog-pda') . '</span>' : '<span style="color: green;">✓ ' . __('OK', 'blog-pda') . '</span>'; ?></td>
+                            <td><strong><?php _e('Total Tags WP (post_tag)', 'blog-pda'); ?></strong></td>
+                            <td><?php echo $stats['wp_tags_total']; ?></td>
+                            <td><?php echo $stats['wp_tags_total'] > 0 ? '<span style="color: orange;">⚠️ ' . __('Serão copiadas', 'blog-pda') . '</span>' : '<span style="color: green;">✓ ' . __('Nenhuma', 'blog-pda') . '</span>'; ?></td>
                         </tr>
                         <tr style="background: #f0f0f1;">
                             <td><strong><?php _e('Categorias Blog (blog_category)', 'blog-pda'); ?></strong></td>
@@ -547,7 +547,7 @@ final class Blog_PDA {
                 </p>
             </div>
             
-            <?php if ($stats['wp_categories'] > 0 || $stats['wp_tags'] > 0 || $stats['posts_with_wp_categories'] > 0 || $stats['posts_with_wp_tags'] > 0) : ?>
+            <?php if ($stats['wp_categories_total'] > 0 || $stats['wp_tags_total'] > 0 || $stats['posts_with_wp_categories'] > 0 || $stats['posts_with_wp_tags'] > 0) : ?>
             <div class="card" style="max-width: 800px; padding: 20px; margin-top: 20px;">
                 <h2><?php _e('Executar Migração', 'blog-pda'); ?></h2>
                 <p><?php _e('Clique no botão abaixo para migrar todas as categorias e tags dos posts do blog para as taxonomias do plugin.', 'blog-pda'); ?></p>
@@ -594,6 +594,20 @@ final class Blog_PDA {
             'post_status' => 'any'
         ]);
         
+        // Count ALL WP categories (not just from blog posts)
+        $all_wp_categories = get_terms([
+            'taxonomy' => 'category',
+            'hide_empty' => false
+        ]);
+        $wp_categories_total = !is_wp_error($all_wp_categories) ? count($all_wp_categories) : 0;
+        
+        // Count ALL WP tags (not just from blog posts)
+        $all_wp_tags = get_terms([
+            'taxonomy' => 'post_tag',
+            'hide_empty' => false
+        ]);
+        $wp_tags_total = !is_wp_error($all_wp_tags) ? count($all_wp_tags) : 0;
+        
         // Count WP categories used by blog posts
         $wp_categories = 0;
         $posts_with_wp_categories = 0;
@@ -624,6 +638,8 @@ final class Blog_PDA {
             'total_posts' => count($blog_post_ids),
             'wp_categories' => $wp_categories,
             'wp_tags' => $wp_tags,
+            'wp_categories_total' => $wp_categories_total,
+            'wp_tags_total' => $wp_tags_total,
             'posts_with_wp_categories' => $posts_with_wp_categories,
             'posts_with_wp_tags' => $posts_with_wp_tags,
             'blog_categories' => is_wp_error($blog_categories) ? 0 : $blog_categories,
@@ -638,8 +654,80 @@ final class Blog_PDA {
         $migrated_categories = 0;
         $migrated_tags = 0;
         $migrated_posts = 0;
+        $category_mapping = []; // old_term_id => new_term_id
+        $tag_mapping = []; // old_term_id => new_term_id
         
-        // Get all blog posts
+        // STEP 1: Copy ALL WordPress categories to blog_category
+        $all_wp_categories = get_terms([
+            'taxonomy' => 'category',
+            'hide_empty' => false,
+            'orderby' => 'parent', // Process parents first
+            'order' => 'ASC'
+        ]);
+        
+        if (!is_wp_error($all_wp_categories) && !empty($all_wp_categories)) {
+            foreach ($all_wp_categories as $wp_cat) {
+                // Skip "Uncategorized" if it's the default
+                if ($wp_cat->slug === 'uncategorized' || $wp_cat->slug === 'sem-categoria') {
+                    continue;
+                }
+                
+                // Check if blog_category with same slug exists
+                $blog_cat = get_term_by('slug', $wp_cat->slug, 'blog_category');
+                
+                if (!$blog_cat) {
+                    // Determine parent for hierarchy
+                    $parent_id = 0;
+                    if ($wp_cat->parent > 0 && isset($category_mapping[$wp_cat->parent])) {
+                        $parent_id = $category_mapping[$wp_cat->parent];
+                    }
+                    
+                    // Create new blog_category
+                    $new_term = wp_insert_term($wp_cat->name, 'blog_category', [
+                        'slug' => $wp_cat->slug,
+                        'description' => $wp_cat->description,
+                        'parent' => $parent_id
+                    ]);
+                    
+                    if (!is_wp_error($new_term)) {
+                        $category_mapping[$wp_cat->term_id] = $new_term['term_id'];
+                        $migrated_categories++;
+                    }
+                } else {
+                    $category_mapping[$wp_cat->term_id] = $blog_cat->term_id;
+                }
+            }
+        }
+        
+        // STEP 2: Copy ALL WordPress tags to blog_tag
+        $all_wp_tags = get_terms([
+            'taxonomy' => 'post_tag',
+            'hide_empty' => false
+        ]);
+        
+        if (!is_wp_error($all_wp_tags) && !empty($all_wp_tags)) {
+            foreach ($all_wp_tags as $wp_tag) {
+                // Check if blog_tag with same slug exists
+                $blog_tag = get_term_by('slug', $wp_tag->slug, 'blog_tag');
+                
+                if (!$blog_tag) {
+                    // Create new blog_tag
+                    $new_term = wp_insert_term($wp_tag->name, 'blog_tag', [
+                        'slug' => $wp_tag->slug,
+                        'description' => $wp_tag->description
+                    ]);
+                    
+                    if (!is_wp_error($new_term)) {
+                        $tag_mapping[$wp_tag->term_id] = $new_term['term_id'];
+                        $migrated_tags++;
+                    }
+                } else {
+                    $tag_mapping[$wp_tag->term_id] = $blog_tag->term_id;
+                }
+            }
+        }
+        
+        // STEP 3: Associate posts with new taxonomies
         $blog_posts = get_posts([
             'post_type' => 'blog_post',
             'posts_per_page' => -1,
@@ -649,32 +737,18 @@ final class Blog_PDA {
         foreach ($blog_posts as $post) {
             $post_updated = false;
             
-            // Migrate categories
+            // Migrate categories for this post
             $wp_categories = wp_get_post_terms($post->ID, 'category');
             if (!empty($wp_categories) && !is_wp_error($wp_categories)) {
+                $new_cat_ids = [];
                 foreach ($wp_categories as $wp_cat) {
-                    // Check if blog_category with same slug exists
-                    $blog_cat = get_term_by('slug', $wp_cat->slug, 'blog_category');
-                    
-                    if (!$blog_cat) {
-                        // Create new blog_category
-                        $new_term = wp_insert_term($wp_cat->name, 'blog_category', [
-                            'slug' => $wp_cat->slug,
-                            'description' => $wp_cat->description
-                        ]);
-                        
-                        if (!is_wp_error($new_term)) {
-                            $blog_cat_id = $new_term['term_id'];
-                            $migrated_categories++;
-                        }
-                    } else {
-                        $blog_cat_id = $blog_cat->term_id;
+                    if (isset($category_mapping[$wp_cat->term_id])) {
+                        $new_cat_ids[] = $category_mapping[$wp_cat->term_id];
                     }
-                    
-                    // Assign to post
-                    if (isset($blog_cat_id)) {
-                        wp_set_post_terms($post->ID, [$blog_cat_id], 'blog_category', true);
-                    }
+                }
+                
+                if (!empty($new_cat_ids)) {
+                    wp_set_post_terms($post->ID, $new_cat_ids, 'blog_category', true);
                 }
                 
                 // Remove WP categories from post
@@ -682,32 +756,18 @@ final class Blog_PDA {
                 $post_updated = true;
             }
             
-            // Migrate tags
+            // Migrate tags for this post
             $wp_tags = wp_get_post_terms($post->ID, 'post_tag');
             if (!empty($wp_tags) && !is_wp_error($wp_tags)) {
+                $new_tag_ids = [];
                 foreach ($wp_tags as $wp_tag) {
-                    // Check if blog_tag with same slug exists
-                    $blog_tag = get_term_by('slug', $wp_tag->slug, 'blog_tag');
-                    
-                    if (!$blog_tag) {
-                        // Create new blog_tag
-                        $new_term = wp_insert_term($wp_tag->name, 'blog_tag', [
-                            'slug' => $wp_tag->slug,
-                            'description' => $wp_tag->description
-                        ]);
-                        
-                        if (!is_wp_error($new_term)) {
-                            $blog_tag_id = $new_term['term_id'];
-                            $migrated_tags++;
-                        }
-                    } else {
-                        $blog_tag_id = $blog_tag->term_id;
+                    if (isset($tag_mapping[$wp_tag->term_id])) {
+                        $new_tag_ids[] = $tag_mapping[$wp_tag->term_id];
                     }
-                    
-                    // Assign to post
-                    if (isset($blog_tag_id)) {
-                        wp_set_post_terms($post->ID, [$blog_tag_id], 'blog_tag', true);
-                    }
+                }
+                
+                if (!empty($new_tag_ids)) {
+                    wp_set_post_terms($post->ID, $new_tag_ids, 'blog_tag', true);
                 }
                 
                 // Remove WP tags from post
