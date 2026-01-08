@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.8.0
+ * Version: 1.8.1
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.8.0');
+define('BLOG_PDA_VERSION', '1.8.1');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -2011,6 +2011,9 @@ final class Blog_PDA {
      * Podcasts page content
      */
     public function podcasts_page_content() {
+        // Enqueue media uploader
+        wp_enqueue_media();
+        
         // Save podcasts
         if (isset($_POST['blog_pda_save_podcasts']) && check_admin_referer('blog_pda_podcasts_nonce')) {
             $podcasts = [];
@@ -2021,7 +2024,9 @@ final class Blog_PDA {
                         $podcasts[] = [
                             'title' => $title,
                             'subtitle' => isset($_POST['podcast_subtitle'][$index]) ? sanitize_text_field($_POST['podcast_subtitle'][$index]) : '',
-                            'url' => isset($_POST['podcast_url'][$index]) ? esc_url_raw($_POST['podcast_url'][$index]) : '#'
+                            'audio_url' => isset($_POST['podcast_audio_url'][$index]) ? esc_url_raw($_POST['podcast_audio_url'][$index]) : '',
+                            'link_url' => isset($_POST['podcast_link_url'][$index]) ? esc_url_raw($_POST['podcast_link_url'][$index]) : '',
+                            'duration' => isset($_POST['podcast_duration'][$index]) ? sanitize_text_field($_POST['podcast_duration'][$index]) : ''
                         ];
                     }
                 }
@@ -2034,30 +2039,64 @@ final class Blog_PDA {
         ?>
         <div class="wrap">
             <h1><?php _e('🎙️ Podcasts', 'blog-pda'); ?></h1>
-            <p><?php _e('Adicione links para podcasts que serão exibidos na seção "Veja também".', 'blog-pda'); ?></p>
+            <p><?php _e('Cadastre episódios de podcast com áudio para exibir na seção "Veja também" do blog.', 'blog-pda'); ?></p>
             
             <form method="post" action="">
                 <?php wp_nonce_field('blog_pda_podcasts_nonce'); ?>
                 
-                <div class="card" style="max-width: 900px; padding: 20px;">
-                    <h2><?php _e('Lista de Podcasts', 'blog-pda'); ?></h2>
+                <div class="card" style="max-width: 1000px; padding: 20px;">
+                    <h2><?php _e('Episódios de Podcast', 'blog-pda'); ?></h2>
+                    <p class="description"><?php _e('Adicione o título, subtítulo (episódio), e o áudio do podcast. Você pode fazer upload de um arquivo MP3 ou colar uma URL externa.', 'blog-pda'); ?></p>
                     
                     <div id="podcasts-list" style="margin-top: 20px;">
                         <?php if (!empty($podcasts)) : ?>
                             <?php foreach ($podcasts as $index => $podcast) : ?>
-                            <div class="podcast-item" style="display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px; align-items: center;">
-                                <input type="text" name="podcast_title[]" value="<?php echo esc_attr($podcast['title']); ?>" placeholder="<?php _e('Título', 'blog-pda'); ?>" class="regular-text">
-                                <input type="text" name="podcast_subtitle[]" value="<?php echo esc_attr($podcast['subtitle']); ?>" placeholder="<?php _e('Subtítulo/Episódio', 'blog-pda'); ?>" class="regular-text">
-                                <input type="url" name="podcast_url[]" value="<?php echo esc_url($podcast['url']); ?>" placeholder="<?php _e('URL do podcast', 'blog-pda'); ?>" class="regular-text">
-                                <button type="button" class="button remove-podcast" style="color: #d63638;"><?php _e('Remover', 'blog-pda'); ?></button>
+                            <div class="podcast-item" style="margin-bottom: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #9B2D9B;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('Título do Podcast', 'blog-pda'); ?></label>
+                                        <input type="text" name="podcast_title[]" value="<?php echo esc_attr($podcast['title']); ?>" placeholder="<?php _e('Ex: PODCAST das Aves', 'blog-pda'); ?>" class="regular-text" style="width: 100%;">
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('Subtítulo / Episódio', 'blog-pda'); ?></label>
+                                        <input type="text" name="podcast_subtitle[]" value="<?php echo esc_attr($podcast['subtitle']); ?>" placeholder="<?php _e('Ex: Episódio 1', 'blog-pda'); ?>" class="regular-text" style="width: 100%;">
+                                    </div>
+                                </div>
+                                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('URL do Áudio (MP3)', 'blog-pda'); ?></label>
+                                        <div style="display: flex; gap: 10px;">
+                                            <input type="url" name="podcast_audio_url[]" value="<?php echo esc_url($podcast['audio_url'] ?? ''); ?>" placeholder="<?php _e('https://... ou clique em Upload', 'blog-pda'); ?>" class="regular-text podcast-audio-url" style="flex: 1;">
+                                            <button type="button" class="button upload-audio-btn"><?php _e('📁 Upload', 'blog-pda'); ?></button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('Duração', 'blog-pda'); ?></label>
+                                        <input type="text" name="podcast_duration[]" value="<?php echo esc_attr($podcast['duration'] ?? ''); ?>" placeholder="<?php _e('Ex: 15:30', 'blog-pda'); ?>" class="regular-text" style="width: 100%;">
+                                    </div>
+                                </div>
+                                <div style="margin-bottom: 15px;">
+                                    <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('Link Externo (opcional)', 'blog-pda'); ?></label>
+                                    <input type="url" name="podcast_link_url[]" value="<?php echo esc_url($podcast['link_url'] ?? ''); ?>" placeholder="<?php _e('Link para Spotify, Apple Podcasts, etc.', 'blog-pda'); ?>" class="regular-text" style="width: 100%;">
+                                </div>
+                                <?php if (!empty($podcast['audio_url'])) : ?>
+                                <div style="background: #fff; padding: 10px; border-radius: 4px;">
+                                    <audio controls style="width: 100%;">
+                                        <source src="<?php echo esc_url($podcast['audio_url']); ?>" type="audio/mpeg">
+                                    </audio>
+                                </div>
+                                <?php endif; ?>
+                                <div style="text-align: right; margin-top: 10px;">
+                                    <button type="button" class="button remove-podcast" style="color: #d63638;"><?php _e('🗑️ Remover Episódio', 'blog-pda'); ?></button>
+                                </div>
                             </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
                     
-                    <div style="margin-top: 15px;">
-                        <button type="button" id="add-podcast" class="button button-secondary">
-                            <?php _e('+ Adicionar Podcast', 'blog-pda'); ?>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ddd;">
+                        <button type="button" id="add-podcast" class="button button-secondary button-large">
+                            <?php _e('➕ Adicionar Novo Episódio', 'blog-pda'); ?>
                         </button>
                     </div>
                 </div>
@@ -2072,18 +2111,72 @@ final class Blog_PDA {
         jQuery(document).ready(function($) {
             // Add new podcast
             $('#add-podcast').on('click', function() {
-                var html = '<div class="podcast-item" style="display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px; align-items: center;">' +
-                    '<input type="text" name="podcast_title[]" placeholder="<?php _e('Título', 'blog-pda'); ?>" class="regular-text">' +
-                    '<input type="text" name="podcast_subtitle[]" placeholder="<?php _e('Subtítulo/Episódio', 'blog-pda'); ?>" class="regular-text">' +
-                    '<input type="url" name="podcast_url[]" placeholder="<?php _e('URL do podcast', 'blog-pda'); ?>" class="regular-text">' +
-                    '<button type="button" class="button remove-podcast" style="color: #d63638;"><?php _e('Remover', 'blog-pda'); ?></button>' +
-                '</div>';
+                var html = `
+                <div class="podcast-item" style="margin-bottom: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #9B2D9B;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('Título do Podcast', 'blog-pda'); ?></label>
+                            <input type="text" name="podcast_title[]" placeholder="<?php _e('Ex: PODCAST das Aves', 'blog-pda'); ?>" class="regular-text" style="width: 100%;">
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('Subtítulo / Episódio', 'blog-pda'); ?></label>
+                            <input type="text" name="podcast_subtitle[]" placeholder="<?php _e('Ex: Episódio 1', 'blog-pda'); ?>" class="regular-text" style="width: 100%;">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('URL do Áudio (MP3)', 'blog-pda'); ?></label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="url" name="podcast_audio_url[]" placeholder="<?php _e('https://... ou clique em Upload', 'blog-pda'); ?>" class="regular-text podcast-audio-url" style="flex: 1;">
+                                <button type="button" class="button upload-audio-btn"><?php _e('📁 Upload', 'blog-pda'); ?></button>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('Duração', 'blog-pda'); ?></label>
+                            <input type="text" name="podcast_duration[]" placeholder="<?php _e('Ex: 15:30', 'blog-pda'); ?>" class="regular-text" style="width: 100%;">
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: block; font-weight: 600; margin-bottom: 5px;"><?php _e('Link Externo (opcional)', 'blog-pda'); ?></label>
+                        <input type="url" name="podcast_link_url[]" placeholder="<?php _e('Link para Spotify, Apple Podcasts, etc.', 'blog-pda'); ?>" class="regular-text" style="width: 100%;">
+                    </div>
+                    <div style="text-align: right; margin-top: 10px;">
+                        <button type="button" class="button remove-podcast" style="color: #d63638;"><?php _e('🗑️ Remover Episódio', 'blog-pda'); ?></button>
+                    </div>
+                </div>`;
                 $('#podcasts-list').append(html);
             });
             
             // Remove podcast
             $(document).on('click', '.remove-podcast', function() {
-                $(this).closest('.podcast-item').remove();
+                if (confirm('<?php _e('Tem certeza que deseja remover este episódio?', 'blog-pda'); ?>')) {
+                    $(this).closest('.podcast-item').remove();
+                }
+            });
+            
+            // Upload audio using WordPress Media Library
+            $(document).on('click', '.upload-audio-btn', function(e) {
+                e.preventDefault();
+                var button = $(this);
+                var inputField = button.siblings('.podcast-audio-url');
+                
+                var mediaUploader = wp.media({
+                    title: '<?php _e('Selecionar Áudio do Podcast', 'blog-pda'); ?>',
+                    button: {
+                        text: '<?php _e('Usar este áudio', 'blog-pda'); ?>'
+                    },
+                    library: {
+                        type: 'audio'
+                    },
+                    multiple: false
+                });
+                
+                mediaUploader.on('select', function() {
+                    var attachment = mediaUploader.state().get('selection').first().toJSON();
+                    inputField.val(attachment.url);
+                });
+                
+                mediaUploader.open();
             });
         });
         </script>

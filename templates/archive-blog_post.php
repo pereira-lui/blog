@@ -240,23 +240,53 @@ $popular_query = new WP_Query($popular_args);
             <h2 class="blog-section-title"><?php _e('Veja também', 'blog-pda'); ?></h2>
             <div class="blog-podcasts-grid">
                 <?php 
-                foreach ($podcasts as $podcast) :
-                    $url = isset($podcast['url']) ? $podcast['url'] : '#';
+                foreach ($podcasts as $index => $podcast) :
+                    $audio_url = isset($podcast['audio_url']) ? $podcast['audio_url'] : '';
+                    $link_url = isset($podcast['link_url']) ? $podcast['link_url'] : '';
+                    $duration = isset($podcast['duration']) ? $podcast['duration'] : '';
+                    $has_audio = !empty($audio_url);
                 ?>
-                <a href="<?php echo esc_url($url); ?>" class="blog-podcast-card">
+                <div class="blog-podcast-card" <?php if ($has_audio) : ?>data-audio="true"<?php endif; ?>>
                     <div class="blog-podcast-icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <?php if ($has_audio) : ?>
+                        <button class="blog-podcast-play-btn" aria-label="<?php _e('Reproduzir', 'blog-pda'); ?>">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                        </button>
+                        <?php else : ?>
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
                             <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
                             <line x1="12" y1="19" x2="12" y2="23"></line>
                             <line x1="8" y1="23" x2="16" y2="23"></line>
                         </svg>
+                        <?php endif; ?>
                     </div>
                     <div class="blog-podcast-content">
                         <h4 class="blog-podcast-title"><?php echo esc_html($podcast['title']); ?></h4>
-                        <p class="blog-podcast-subtitle"><?php echo esc_html($podcast['subtitle']); ?></p>
+                        <p class="blog-podcast-subtitle">
+                            <?php echo esc_html($podcast['subtitle']); ?>
+                            <?php if ($duration) : ?>
+                            <span class="blog-podcast-duration"><?php echo esc_html($duration); ?></span>
+                            <?php endif; ?>
+                        </p>
                     </div>
-                </a>
+                    <?php if ($link_url) : ?>
+                    <a href="<?php echo esc_url($link_url); ?>" class="blog-podcast-external" target="_blank" aria-label="<?php _e('Abrir em plataforma externa', 'blog-pda'); ?>">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                            <polyline points="15 3 21 3 21 9"></polyline>
+                            <line x1="10" y1="14" x2="21" y2="3"></line>
+                        </svg>
+                    </a>
+                    <?php endif; ?>
+                    <?php if ($has_audio) : ?>
+                    <audio class="blog-podcast-audio" preload="none">
+                        <source src="<?php echo esc_url($audio_url); ?>" type="audio/mpeg">
+                    </audio>
+                    <?php endif; ?>
+                </div>
                 <?php endforeach; ?>
             </div>
         </div>

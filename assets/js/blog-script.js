@@ -14,6 +14,7 @@
         initLoadMore();
         initCopyLink();
         initVideoModal();
+        initPodcastPlayers();
     });
 
     /**
@@ -314,6 +315,72 @@
             btn.style.backgroundColor = originalBg;
             btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
         }, 2000);
+    }
+
+    /**
+     * Initialize Podcast Players
+     */
+    function initPodcastPlayers() {
+        const podcastCards = document.querySelectorAll('.blog-podcast-card[data-audio]');
+        let currentlyPlaying = null;
+        
+        podcastCards.forEach(function(card) {
+            const playBtn = card.querySelector('.blog-podcast-play-btn');
+            const audio = card.querySelector('.blog-podcast-audio');
+            
+            if (!playBtn || !audio) return;
+            
+            // Play icon SVG
+            const playIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>';
+            // Pause icon SVG
+            const pauseIcon = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg>';
+            
+            playBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (audio.paused) {
+                    // Stop any currently playing audio
+                    if (currentlyPlaying && currentlyPlaying !== audio) {
+                        currentlyPlaying.pause();
+                        currentlyPlaying.currentTime = 0;
+                        
+                        // Reset previous card
+                        const prevCard = currentlyPlaying.closest('.blog-podcast-card');
+                        if (prevCard) {
+                            prevCard.classList.remove('playing');
+                            const prevBtn = prevCard.querySelector('.blog-podcast-play-btn');
+                            if (prevBtn) prevBtn.innerHTML = playIcon;
+                        }
+                    }
+                    
+                    // Play this audio
+                    audio.play();
+                    currentlyPlaying = audio;
+                    card.classList.add('playing');
+                    playBtn.innerHTML = pauseIcon;
+                } else {
+                    // Pause this audio
+                    audio.pause();
+                    card.classList.remove('playing');
+                    playBtn.innerHTML = playIcon;
+                }
+            });
+            
+            // Reset when audio ends
+            audio.addEventListener('ended', function() {
+                card.classList.remove('playing');
+                playBtn.innerHTML = playIcon;
+                currentlyPlaying = null;
+            });
+        });
+        
+        // Handle external link clicks (don't trigger play)
+        document.querySelectorAll('.blog-podcast-external').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
     }
 
 })();
