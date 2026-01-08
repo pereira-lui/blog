@@ -455,7 +455,7 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             
             <?php if ($settings['show_button'] === 'yes') : ?>
             <div class="blog-pda-widget-button-wrap">
-                <a href="<?php echo get_post_type_archive_link('blog_post'); ?>" class="blog-pda-widget-button">
+                <a href="<?php echo esc_url(home_url('/blog')); ?>" class="blog-pda-widget-button">
                     <?php echo esc_html($settings['button_text']); ?>
                 </a>
             </div>
