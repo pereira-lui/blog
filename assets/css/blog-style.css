@@ -32,20 +32,73 @@
 }
 
 /* ==========================================================================
+   Critical Overrides - Prevent theme conflicts
+   ========================================================================== */
+.blog-pda-archive img,
+.blog-pda-single img {
+    max-width: 100% !important;
+    height: auto !important;
+}
+
+.blog-pda-archive .blog-hero-grid,
+.blog-pda-archive .blog-posts-grid,
+.blog-pda-archive .blog-related-posts-grid,
+.blog-pda-archive .blog-podcasts-grid,
+.blog-pda-single .blog-related-posts-grid {
+    display: grid !important;
+}
+
+.blog-pda-archive .blog-hero-sidebar,
+.blog-pda-archive .blog-popular-track,
+.blog-pda-archive .blog-videos-track {
+    display: flex !important;
+}
+
+.blog-pda-archive a,
+.blog-pda-single a {
+    text-decoration: none !important;
+}
+
+.blog-pda-archive h1,
+.blog-pda-archive h2,
+.blog-pda-archive h3,
+.blog-pda-archive h4,
+.blog-pda-single h1,
+.blog-pda-single h2,
+.blog-pda-single h3,
+.blog-pda-single h4 {
+    font-family: "Neurial Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* ==========================================================================
    Base Styles
    ========================================================================== */
 .blog-pda-archive,
 .blog-pda-single {
-    font-family: "Neurial Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: var(--blog-text-color);
-    line-height: 1.6;
-    background: var(--blog-background);
+    font-family: "Neurial Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    color: var(--blog-text-color) !important;
+    line-height: 1.6 !important;
+    background: var(--blog-background) !important;
+    box-sizing: border-box !important;
 }
 
-.blog-container {
-    max-width: var(--blog-container-width);
-    margin: 0 auto;
-    padding: 0 24px;
+.blog-pda-archive *,
+.blog-pda-single *,
+.blog-pda-archive *::before,
+.blog-pda-single *::before,
+.blog-pda-archive *::after,
+.blog-pda-single *::after {
+    box-sizing: border-box !important;
+}
+
+.blog-pda-archive .blog-container,
+.blog-pda-single .blog-container {
+    max-width: var(--blog-container-width) !important;
+    margin: 0 auto !important;
+    padding: 0 24px !important;
+    width: 100% !important;
 }
 
 /* ==========================================================================
@@ -99,52 +152,52 @@
 /* ==========================================================================
    Hero Section
    ========================================================================== */
-.blog-hero {
-    padding: 60px 0 40px;
-    background: var(--blog-background);
+.blog-pda-archive .blog-hero {
+    padding: 60px 0 40px !important;
+    background: var(--blog-background) !important;
 }
 
-.blog-hero-title {
-    font-size: 42px;
-    font-weight: 700;
-    color: var(--blog-text-dark);
-    margin-bottom: 40px;
-    text-align: left;
-    line-height: 1.2;
+.blog-pda-archive .blog-hero-title {
+    font-size: 42px !important;
+    font-weight: 700 !important;
+    color: var(--blog-text-dark) !important;
+    margin-bottom: 40px !important;
+    text-align: left !important;
+    line-height: 1.2 !important;
 }
 
 /* Hero Grid - 1 grande + 3 pequenos */
-.blog-hero-grid {
-    display: grid;
-    grid-template-columns: 1.6fr 1fr;
-    gap: 24px;
-    align-items: stretch;
+.blog-pda-archive .blog-hero-grid {
+    display: grid !important;
+    grid-template-columns: 1.6fr 1fr !important;
+    gap: 24px !important;
+    align-items: stretch !important;
 }
 
 /* Post Principal (Grande) */
-.blog-hero-main {
-    position: relative;
-    border-radius: var(--blog-radius-xl);
-    overflow: hidden;
-    background: var(--blog-background-light);
+.blog-pda-archive .blog-hero-main {
+    position: relative !important;
+    border-radius: var(--blog-radius-xl) !important;
+    overflow: hidden !important;
+    background: var(--blog-background-light) !important;
 }
 
-.blog-hero-main-link {
-    display: block;
-    text-decoration: none;
-    height: 100%;
+.blog-pda-archive .blog-hero-main-link {
+    display: block !important;
+    text-decoration: none !important;
+    height: 100% !important;
 }
 
-.blog-hero-main-image {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    min-height: 480px;
+.blog-pda-archive .blog-hero-main-image {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 480px !important;
 }
 
-.blog-hero-main-image img {
-    width: 100%;
-    height: 100%;
+.blog-pda-archive .blog-hero-main-image img {
+    width: 100% !important;
+    height: 100% !important;
     object-fit: cover;
     position: absolute;
     top: 0;
@@ -181,46 +234,46 @@
 }
 
 /* Posts Secundários (Sidebar) */
-.blog-hero-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
+.blog-pda-archive .blog-hero-sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
 }
 
-.blog-hero-sidebar-item {
-    flex: 1;
-    border-radius: var(--blog-radius-lg);
-    overflow: hidden;
-    background: var(--blog-background);
-    box-shadow: var(--blog-shadow);
-    transition: var(--blog-transition);
+.blog-pda-archive .blog-hero-sidebar-item {
+    flex: 1 !important;
+    border-radius: var(--blog-radius-lg) !important;
+    overflow: hidden !important;
+    background: var(--blog-background) !important;
+    box-shadow: var(--blog-shadow) !important;
+    transition: var(--blog-transition) !important;
 }
 
-.blog-hero-sidebar-item:hover {
-    box-shadow: var(--blog-shadow-hover);
-    transform: translateY(-2px);
+.blog-pda-archive .blog-hero-sidebar-item:hover {
+    box-shadow: var(--blog-shadow-hover) !important;
+    transform: translateY(-2px) !important;
 }
 
-.blog-hero-sidebar-link {
-    display: flex;
-    gap: 16px;
-    text-decoration: none;
-    height: 100%;
-    padding: 12px;
+.blog-pda-archive .blog-hero-sidebar-link {
+    display: flex !important;
+    gap: 16px !important;
+    text-decoration: none !important;
+    height: 100% !important;
+    padding: 12px !important;
 }
 
-.blog-hero-sidebar-image {
-    flex: 0 0 120px;
-    width: 120px;
-    height: 100px;
-    border-radius: var(--blog-radius);
-    overflow: hidden;
+.blog-pda-archive .blog-hero-sidebar-image {
+    flex: 0 0 120px !important;
+    width: 120px !important;
+    height: 100px !important;
+    border-radius: var(--blog-radius) !important;
+    overflow: hidden !important;
 }
 
-.blog-hero-sidebar-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+.blog-pda-archive .blog-hero-sidebar-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
 }
 
 .blog-hero-sidebar-content {
@@ -382,19 +435,20 @@
 }
 
 /* Posts Grid - 2 colunas */
-.blog-posts-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 30px;
-    margin-bottom: 40px;
+.blog-pda-archive .blog-posts-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 30px !important;
+    margin-bottom: 40px !important;
 }
 
 /* Post Card */
-.blog-post-card {
-    background: var(--blog-background);
-    border-radius: var(--blog-radius-xl);
-    overflow: hidden;
-    box-shadow: var(--blog-shadow);
+.blog-pda-archive .blog-post-card,
+.blog-pda-single .blog-post-card {
+    background: var(--blog-background) !important;
+    border-radius: var(--blog-radius-xl) !important;
+    overflow: hidden !important;
+    box-shadow: var(--blog-shadow) !important;
     transition: var(--blog-transition);
 }
 
