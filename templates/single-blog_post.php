@@ -63,6 +63,13 @@ if ($popular_query->post_count < 5) {
 }
 ?>
 
+<!-- Cabeçalho do Blog -->
+<header class="blog-pda-header">
+    <div class="blog-header-container">
+        <img src="<?php echo BLOG_PDA_PLUGIN_URL; ?>assets/imgs/Cabecalho-1.webp" alt="Parque das Aves - Nossa Mata Atlântica" class="blog-header-logo">
+    </div>
+</header>
+
 <main id="blog-main" class="blog-pda-single">
     
     <?php while (have_posts()) : the_post(); ?>

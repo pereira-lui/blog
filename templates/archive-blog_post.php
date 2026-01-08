@@ -70,6 +70,13 @@ $popular_args = [
 $popular_query = new WP_Query($popular_args);
 ?>
 
+<!-- Cabeçalho do Blog -->
+<header class="blog-pda-header">
+    <div class="blog-header-container">
+        <img src="<?php echo BLOG_PDA_PLUGIN_URL; ?>assets/imgs/Cabecalho-1.webp" alt="Parque das Aves - Nossa Mata Atlântica" class="blog-header-logo">
+    </div>
+</header>
+
 <main id="blog-main" class="blog-pda-archive">
     
     <!-- Hero Section -->

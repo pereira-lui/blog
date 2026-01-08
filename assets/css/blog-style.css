@@ -32,6 +32,33 @@
 }
 
 /* ==========================================================================
+   Blog Header
+   ========================================================================== */
+.blog-pda-header {
+    width: 100% !important;
+    background-color: var(--blog-primary-color) !important;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.blog-header-container {
+    max-width: var(--blog-container-width) !important;
+    margin: 0 auto !important;
+    padding: 0 20px !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+}
+
+.blog-header-logo {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    object-fit: contain !important;
+}
+
+/* ==========================================================================
    Critical Overrides - Prevent theme conflicts
    ========================================================================== */
 .blog-pda-archive,
