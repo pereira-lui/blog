@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.4.1
+ * Version: 1.5.0
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.4.1');
+define('BLOG_PDA_VERSION', '1.5.0');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -379,8 +379,17 @@ final class Blog_PDA {
     public function add_admin_menu() {
         add_submenu_page(
             'edit.php?post_type=blog_post',
-            __('Importar Posts', 'blog-pda'),
-            __('Importar Posts', 'blog-pda'),
+            __('Importar CSV', 'blog-pda'),
+            __('📥 Importar CSV', 'blog-pda'),
+            'manage_options',
+            'blog-pda-csv-import',
+            [$this, 'csv_import_page_content']
+        );
+        
+        add_submenu_page(
+            'edit.php?post_type=blog_post',
+            __('Instruções', 'blog-pda'),
+            __('Instruções', 'blog-pda'),
             'manage_options',
             'blog-pda-import',
             [$this, 'import_page_content']
@@ -412,6 +421,353 @@ final class Blog_PDA {
             'blog-pda-settings',
             [$this, 'settings_page_content']
         );
+    }
+
+    /**
+     * CSV Import page content
+     */
+    public function csv_import_page_content() {
+        $message = '';
+        $message_type = '';
+        $imported_count = 0;
+        $errors = [];
+        
+        // Handle CSV upload
+        if (isset($_POST['blog_pda_import_csv']) && wp_verify_nonce($_POST['_wpnonce'], 'blog_pda_csv_import')) {
+            if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK) {
+                $result = $this->process_csv_import($_FILES['csv_file']['tmp_name']);
+                $message = $result['message'];
+                $message_type = $result['success'] ? 'success' : 'error';
+                $imported_count = $result['imported'] ?? 0;
+                $errors = $result['errors'] ?? [];
+            } else {
+                $message = __('Erro ao fazer upload do arquivo CSV.', 'blog-pda');
+                $message_type = 'error';
+            }
+        }
+        ?>
+        <div class="wrap">
+            <h1><?php _e('📥 Importar CSV do WP Import Export', 'blog-pda'); ?></h1>
+            
+            <?php if ($message) : ?>
+            <div class="notice notice-<?php echo $message_type; ?> is-dismissible">
+                <p><?php echo $message; ?></p>
+                <?php if (!empty($errors)) : ?>
+                <details style="margin-top: 10px;">
+                    <summary><?php _e('Ver detalhes dos erros', 'blog-pda'); ?></summary>
+                    <ul style="margin-left: 20px;">
+                        <?php foreach (array_slice($errors, 0, 10) as $error) : ?>
+                        <li><?php echo esc_html($error); ?></li>
+                        <?php endforeach; ?>
+                        <?php if (count($errors) > 10) : ?>
+                        <li><em><?php printf(__('... e mais %d erros', 'blog-pda'), count($errors) - 10); ?></em></li>
+                        <?php endif; ?>
+                    </ul>
+                </details>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            
+            <div class="card" style="max-width: 900px; padding: 20px;">
+                <h2><?php _e('Importador Direto de CSV', 'blog-pda'); ?></h2>
+                <p><?php _e('Este importador lê o arquivo CSV exportado pelo <strong>WP Import Export</strong> e importa diretamente para o Custom Post Type do blog com categorias e tags.', 'blog-pda'); ?></p>
+                
+                <div class="notice notice-info inline" style="margin: 15px 0;">
+                    <p><strong><?php _e('Campos reconhecidos automaticamente:', 'blog-pda'); ?></strong></p>
+                    <ul style="list-style-type: disc; margin-left: 20px;">
+                        <li><code>Title</code> → Título do post</li>
+                        <li><code>Content</code> → Conteúdo</li>
+                        <li><code>Excerpt</code> → Resumo</li>
+                        <li><code>Slug</code> → URL do post</li>
+                        <li><code>Date</code> → Data de publicação</li>
+                        <li><code>Status</code> → Status (publish, draft)</li>
+                        <li><code>Categorias</code> → Categorias do Blog</li>
+                        <li><code>Tags</code> → Tags do Blog</li>
+                        <li><code>Image URL</code> → Imagem destacada</li>
+                    </ul>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data">
+                    <?php wp_nonce_field('blog_pda_csv_import'); ?>
+                    
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row">
+                                <label for="csv_file"><?php _e('Arquivo CSV', 'blog-pda'); ?></label>
+                            </th>
+                            <td>
+                                <input type="file" name="csv_file" id="csv_file" accept=".csv" required>
+                                <p class="description"><?php _e('Selecione o arquivo CSV exportado do WP Import Export.', 'blog-pda'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="update_existing"><?php _e('Posts existentes', 'blog-pda'); ?></label>
+                            </th>
+                            <td>
+                                <label>
+                                    <input type="checkbox" name="update_existing" id="update_existing" value="1">
+                                    <?php _e('Atualizar posts existentes (baseado no slug)', 'blog-pda'); ?>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="download_images"><?php _e('Imagens', 'blog-pda'); ?></label>
+                            </th>
+                            <td>
+                                <label>
+                                    <input type="checkbox" name="download_images" id="download_images" value="1" checked>
+                                    <?php _e('Baixar e importar imagens destacadas', 'blog-pda'); ?>
+                                </label>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <p>
+                        <button type="submit" name="blog_pda_import_csv" class="button button-primary button-hero">
+                            <?php _e('📥 Importar CSV Agora', 'blog-pda'); ?>
+                        </button>
+                    </p>
+                </form>
+            </div>
+            
+            <div class="card" style="max-width: 900px; padding: 20px; margin-top: 20px;">
+                <h2><?php _e('Após a Importação', 'blog-pda'); ?></h2>
+                <ol>
+                    <li><?php _e('Verifique os posts importados', 'blog-pda'); ?></li>
+                    <li><?php _e('Salve os links permanentes para atualizar as URLs', 'blog-pda'); ?></li>
+                </ol>
+                <p>
+                    <a href="<?php echo admin_url('edit.php?post_type=blog_post'); ?>" class="button"><?php _e('Ver Posts', 'blog-pda'); ?></a>
+                    <a href="<?php echo admin_url('options-permalink.php'); ?>" class="button"><?php _e('Links Permanentes', 'blog-pda'); ?></a>
+                </p>
+            </div>
+        </div>
+        <?php
+    }
+
+    /**
+     * Process CSV import
+     */
+    private function process_csv_import($file_path) {
+        $imported = 0;
+        $skipped = 0;
+        $errors = [];
+        $update_existing = isset($_POST['update_existing']) && $_POST['update_existing'] === '1';
+        $download_images = isset($_POST['download_images']) && $_POST['download_images'] === '1';
+        
+        // Read CSV file
+        $handle = fopen($file_path, 'r');
+        if ($handle === false) {
+            return [
+                'success' => false,
+                'message' => __('Não foi possível abrir o arquivo CSV.', 'blog-pda'),
+                'imported' => 0,
+                'errors' => []
+            ];
+        }
+        
+        // Get header row
+        $headers = fgetcsv($handle);
+        if ($headers === false) {
+            fclose($handle);
+            return [
+                'success' => false,
+                'message' => __('Arquivo CSV inválido ou vazio.', 'blog-pda'),
+                'imported' => 0,
+                'errors' => []
+            ];
+        }
+        
+        // Map headers to indexes
+        $header_map = array_flip($headers);
+        
+        // Required fields check
+        if (!isset($header_map['Title'])) {
+            fclose($handle);
+            return [
+                'success' => false,
+                'message' => __('Arquivo CSV não contém a coluna "Title" obrigatória.', 'blog-pda'),
+                'imported' => 0,
+                'errors' => []
+            ];
+        }
+        
+        // Process each row
+        $row_number = 1;
+        while (($row = fgetcsv($handle)) !== false) {
+            $row_number++;
+            
+            // Get values from row
+            $title = isset($header_map['Title']) && isset($row[$header_map['Title']]) ? trim($row[$header_map['Title']]) : '';
+            $content = isset($header_map['Content']) && isset($row[$header_map['Content']]) ? $row[$header_map['Content']] : '';
+            $excerpt = isset($header_map['Excerpt']) && isset($row[$header_map['Excerpt']]) ? $row[$header_map['Excerpt']] : '';
+            $slug = isset($header_map['Slug']) && isset($row[$header_map['Slug']]) ? sanitize_title($row[$header_map['Slug']]) : '';
+            $date = isset($header_map['Date']) && isset($row[$header_map['Date']]) ? $row[$header_map['Date']] : '';
+            $status = isset($header_map['Status']) && isset($row[$header_map['Status']]) ? strtolower(trim($row[$header_map['Status']])) : 'publish';
+            $categories = isset($header_map['Categorias']) && isset($row[$header_map['Categorias']]) ? $row[$header_map['Categorias']] : '';
+            $tags = isset($header_map['Tags']) && isset($row[$header_map['Tags']]) ? $row[$header_map['Tags']] : '';
+            $image_url = isset($header_map['Image URL']) && isset($row[$header_map['Image URL']]) ? trim($row[$header_map['Image URL']]) : '';
+            
+            // Skip empty titles
+            if (empty($title)) {
+                $errors[] = sprintf(__('Linha %d: Título vazio, pulando.', 'blog-pda'), $row_number);
+                $skipped++;
+                continue;
+            }
+            
+            // Check if post exists by slug
+            $existing_post = null;
+            if (!empty($slug)) {
+                $existing_post = get_page_by_path($slug, OBJECT, 'blog_post');
+            }
+            
+            if ($existing_post && !$update_existing) {
+                $skipped++;
+                continue;
+            }
+            
+            // Prepare post data
+            $post_data = [
+                'post_title' => $title,
+                'post_content' => $content,
+                'post_excerpt' => $excerpt,
+                'post_name' => $slug,
+                'post_status' => in_array($status, ['publish', 'draft', 'pending', 'private']) ? $status : 'publish',
+                'post_type' => 'blog_post',
+                'post_date' => !empty($date) ? $date : current_time('mysql'),
+            ];
+            
+            // Update or insert
+            if ($existing_post && $update_existing) {
+                $post_data['ID'] = $existing_post->ID;
+                $post_id = wp_update_post($post_data, true);
+            } else {
+                $post_id = wp_insert_post($post_data, true);
+            }
+            
+            if (is_wp_error($post_id)) {
+                $errors[] = sprintf(__('Linha %d: Erro ao criar post "%s" - %s', 'blog-pda'), $row_number, $title, $post_id->get_error_message());
+                continue;
+            }
+            
+            // Process categories
+            if (!empty($categories)) {
+                $cat_names = array_map('trim', explode(',', $categories));
+                $cat_ids = [];
+                
+                foreach ($cat_names as $cat_name) {
+                    if (empty($cat_name)) continue;
+                    
+                    // Check if category exists
+                    $term = get_term_by('name', $cat_name, 'blog_category');
+                    if (!$term) {
+                        // Create category
+                        $new_term = wp_insert_term($cat_name, 'blog_category');
+                        if (!is_wp_error($new_term)) {
+                            $cat_ids[] = $new_term['term_id'];
+                        }
+                    } else {
+                        $cat_ids[] = $term->term_id;
+                    }
+                }
+                
+                if (!empty($cat_ids)) {
+                    wp_set_object_terms($post_id, $cat_ids, 'blog_category');
+                }
+            }
+            
+            // Process tags
+            if (!empty($tags)) {
+                $tag_names = array_map('trim', explode(',', $tags));
+                $tag_ids = [];
+                
+                foreach ($tag_names as $tag_name) {
+                    if (empty($tag_name)) continue;
+                    
+                    // Check if tag exists
+                    $term = get_term_by('name', $tag_name, 'blog_tag');
+                    if (!$term) {
+                        // Create tag
+                        $new_term = wp_insert_term($tag_name, 'blog_tag');
+                        if (!is_wp_error($new_term)) {
+                            $tag_ids[] = $new_term['term_id'];
+                        }
+                    } else {
+                        $tag_ids[] = $term->term_id;
+                    }
+                }
+                
+                if (!empty($tag_ids)) {
+                    wp_set_object_terms($post_id, $tag_ids, 'blog_tag');
+                }
+            }
+            
+            // Process featured image
+            if ($download_images && !empty($image_url)) {
+                $this->set_featured_image_from_url($post_id, $image_url);
+            }
+            
+            $imported++;
+        }
+        
+        fclose($handle);
+        
+        // Flush rewrite rules
+        flush_rewrite_rules();
+        
+        return [
+            'success' => true,
+            'message' => sprintf(
+                __('Importação concluída! %d posts importados, %d ignorados.', 'blog-pda'),
+                $imported,
+                $skipped
+            ),
+            'imported' => $imported,
+            'errors' => $errors
+        ];
+    }
+
+    /**
+     * Set featured image from URL
+     */
+    private function set_featured_image_from_url($post_id, $image_url) {
+        // Check if image already exists
+        $existing_attachment = attachment_url_to_postid($image_url);
+        if ($existing_attachment) {
+            set_post_thumbnail($post_id, $existing_attachment);
+            return true;
+        }
+        
+        // Download image
+        require_once(ABSPATH . 'wp-admin/includes/media.php');
+        require_once(ABSPATH . 'wp-admin/includes/file.php');
+        require_once(ABSPATH . 'wp-admin/includes/image.php');
+        
+        $tmp = download_url($image_url);
+        
+        if (is_wp_error($tmp)) {
+            return false;
+        }
+        
+        $file_array = [
+            'name' => basename(parse_url($image_url, PHP_URL_PATH)),
+            'tmp_name' => $tmp
+        ];
+        
+        // Sideload the image
+        $attachment_id = media_handle_sideload($file_array, $post_id);
+        
+        if (is_wp_error($attachment_id)) {
+            @unlink($tmp);
+            return false;
+        }
+        
+        // Set as featured image
+        set_post_thumbnail($post_id, $attachment_id);
+        
+        return true;
     }
 
     /**
