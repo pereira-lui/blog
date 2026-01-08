@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.4.0
+ * Version: 1.4.1
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.4.0');
+define('BLOG_PDA_VERSION', '1.4.1');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -422,52 +422,102 @@ final class Blog_PDA {
         <div class="wrap">
             <h1><?php _e('Importar Posts do Blog', 'blog-pda'); ?></h1>
             
-            <div class="card" style="max-width: 800px; padding: 20px;">
-                <h2><?php _e('Método Recomendado: WordPress Importer + Conversão', 'blog-pda'); ?></h2>
+            <div class="card" style="max-width: 900px; padding: 20px;">
+                <h2><?php _e('🚀 WP Import Export (Recomendado)', 'blog-pda'); ?></h2>
                 
-                <p><?php _e('A forma mais simples de importar posts mantendo todas as informações:', 'blog-pda'); ?></p>
+                <p><?php _e('Use o plugin <strong>WP Import Export</strong> para importar diretamente para o Custom Post Type do blog.', 'blog-pda'); ?></p>
                 
-                <h3><?php _e('Passo 1: Importar com WordPress Importer', 'blog-pda'); ?></h3>
+                <h3><?php _e('Passo 1: Exportar do site original', 'blog-pda'); ?></h3>
                 <ol>
-                    <li><?php _e('Vá em <strong>Ferramentas > Importar</strong>', 'blog-pda'); ?></li>
-                    <li><?php _e('Selecione <strong>WordPress</strong> e instale o importador se necessário', 'blog-pda'); ?></li>
-                    <li><?php _e('Faça upload do arquivo .xml exportado do site original', 'blog-pda'); ?></li>
-                    <li><?php _e('Marque <strong>"Baixar e importar anexos de arquivo"</strong>', 'blog-pda'); ?></li>
-                    <li><?php _e('Execute a importação', 'blog-pda'); ?></li>
+                    <li><?php _e('No site original, vá em <strong>WP Imp Exp > New Export</strong>', 'blog-pda'); ?></li>
+                    <li><?php _e('Selecione <strong>Posts</strong> como tipo de conteúdo', 'blog-pda'); ?></li>
+                    <li><?php _e('Exporte em formato <strong>CSV</strong> ou <strong>XML</strong>', 'blog-pda'); ?></li>
                 </ol>
                 
-                <h3><?php _e('Passo 2: Converter Posts', 'blog-pda'); ?></h3>
-                <p><?php _e('Após a importação, use nossa ferramenta de conversão:', 'blog-pda'); ?></p>
-                <p>
-                    <a href="<?php echo admin_url('edit.php?post_type=blog_post&page=blog-pda-convert'); ?>" class="button button-primary">
-                        <?php _e('🔄 Converter Posts WordPress', 'blog-pda'); ?>
-                    </a>
-                </p>
+                <h3><?php _e('Passo 2: Importar neste site', 'blog-pda'); ?></h3>
+                <ol>
+                    <li><?php _e('Vá em <strong>WP Imp Exp > New Import</strong>', 'blog-pda'); ?></li>
+                    <li><?php _e('Faça upload do arquivo exportado', 'blog-pda'); ?></li>
+                    <li><?php _e('Na tela de configuração, selecione:', 'blog-pda'); ?>
+                        <ul style="list-style-type: none; margin-left: 20px; background: #f5f5f5; padding: 15px; border-radius: 5px;">
+                            <li>📌 <strong>Post Type:</strong> <code>blog_post</code> (Post do Blog)</li>
+                        </ul>
+                    </li>
+                </ol>
                 
-                <div class="notice notice-info inline" style="margin-top: 20px;">
-                    <p><strong><?php _e('O que a conversão faz:', 'blog-pda'); ?></strong></p>
+                <h3><?php _e('Passo 3: Mapeamento de Campos (IMPORTANTE)', 'blog-pda'); ?></h3>
+                <p><?php _e('Na tela de mapeamento, configure:', 'blog-pda'); ?></p>
+                
+                <table class="widefat" style="margin: 15px 0;">
+                    <thead>
+                        <tr style="background: #0073aa; color: white;">
+                            <th><?php _e('Campo do Arquivo', 'blog-pda'); ?></th>
+                            <th><?php _e('Mapear Para', 'blog-pda'); ?></th>
+                            <th><?php _e('Observação', 'blog-pda'); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>post_title</code></td>
+                            <td><strong>Title</strong></td>
+                            <td><?php _e('Título do post', 'blog-pda'); ?></td>
+                        </tr>
+                        <tr style="background: #f9f9f9;">
+                            <td><code>post_content</code></td>
+                            <td><strong>Content</strong></td>
+                            <td><?php _e('Conteúdo completo', 'blog-pda'); ?></td>
+                        </tr>
+                        <tr>
+                            <td><code>post_name</code> ou <code>slug</code></td>
+                            <td><strong>Slug</strong></td>
+                            <td>⚠️ <?php _e('Essencial para manter URLs', 'blog-pda'); ?></td>
+                        </tr>
+                        <tr style="background: #f9f9f9;">
+                            <td><code>post_date</code></td>
+                            <td><strong>Date</strong></td>
+                            <td><?php _e('Data de publicação', 'blog-pda'); ?></td>
+                        </tr>
+                        <tr>
+                            <td><code>post_excerpt</code></td>
+                            <td><strong>Excerpt</strong></td>
+                            <td><?php _e('Resumo do post', 'blog-pda'); ?></td>
+                        </tr>
+                        <tr style="background: #f9f9f9;">
+                            <td><code>post_status</code></td>
+                            <td><strong>Status</strong></td>
+                            <td><?php _e('publish, draft, etc.', 'blog-pda'); ?></td>
+                        </tr>
+                        <tr style="background: #fff3cd;">
+                            <td><code>category</code> ou <code>post_category</code></td>
+                            <td><strong>blog_category</strong></td>
+                            <td>⚠️ <?php _e('Taxonomia de Categoria do Blog', 'blog-pda'); ?></td>
+                        </tr>
+                        <tr style="background: #fff3cd;">
+                            <td><code>tags</code> ou <code>post_tag</code></td>
+                            <td><strong>blog_tag</strong></td>
+                            <td>⚠️ <?php _e('Taxonomia de Tag do Blog', 'blog-pda'); ?></td>
+                        </tr>
+                        <tr style="background: #f9f9f9;">
+                            <td><code>featured_image</code></td>
+                            <td><strong>Featured Image</strong></td>
+                            <td><?php _e('Imagem destacada (URL)', 'blog-pda'); ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="notice notice-warning inline" style="margin: 15px 0;">
+                    <p><strong><?php _e('⚠️ Atenção às Taxonomias:', 'blog-pda'); ?></strong></p>
                     <ul style="list-style-type: disc; margin-left: 20px;">
-                        <li><?php _e('Converte posts do tipo <code>post</code> para <code>blog_post</code>', 'blog-pda'); ?></li>
-                        <li><?php _e('Migra categorias e tags automaticamente', 'blog-pda'); ?></li>
-                        <li><?php _e('Preserva: slug, autor, data, imagem destacada, meta dados, comentários', 'blog-pda'); ?></li>
+                        <li><?php _e('Mapeie <code>category</code> para <strong>blog_category</strong> (NÃO para "Category")', 'blog-pda'); ?></li>
+                        <li><?php _e('Mapeie <code>tags</code> para <strong>blog_tag</strong> (NÃO para "Tags")', 'blog-pda'); ?></li>
+                        <li><?php _e('Se as taxonomias não aparecerem, vá em "Add Custom Field" e selecione-as', 'blog-pda'); ?></li>
                     </ul>
                 </div>
             </div>
             
-            <div class="card" style="max-width: 800px; padding: 20px; margin-top: 20px;">
-                <h2><?php _e('Método Alternativo: WP Import Export', 'blog-pda'); ?></h2>
-                <p><?php _e('Se preferir importar diretamente para o blog_post:', 'blog-pda'); ?></p>
-                <ol>
-                    <li><?php _e('Instale o plugin <strong>WP Import Export</strong>', 'blog-pda'); ?></li>
-                    <li><?php _e('Vá em <strong>WP Imp Exp > New Import</strong>', 'blog-pda'); ?></li>
-                    <li><?php _e('Na configuração, selecione <strong>Post Type: blog_post</strong>', 'blog-pda'); ?></li>
-                    <li><?php _e('Mapeie o campo "slug" ou "post_name" para manter a URL original', 'blog-pda'); ?></li>
-                </ol>
-                <p><?php _e('Depois use <strong>Migrar Taxonomias</strong> para as categorias/tags.', 'blog-pda'); ?></p>
-            </div>
-            
-            <div class="card" style="max-width: 800px; padding: 20px; margin-top: 20px;">
-                <h2><?php _e('Fluxo Completo de Importação', 'blog-pda'); ?></h2>
+            <div class="card" style="max-width: 900px; padding: 20px; margin-top: 20px;">
+                <h2><?php _e('📋 Após a Importação', 'blog-pda'); ?></h2>
+                
                 <table class="widefat">
                     <thead>
                         <tr>
@@ -479,32 +529,38 @@ final class Blog_PDA {
                     <tbody>
                         <tr>
                             <td><strong>1</strong></td>
-                            <td><?php _e('Importar arquivo .xml com WordPress Importer', 'blog-pda'); ?></td>
-                            <td><a href="<?php echo admin_url('import.php'); ?>" class="button button-small"><?php _e('Importar', 'blog-pda'); ?></a></td>
+                            <td><?php _e('Verificar se há categorias/tags para migrar', 'blog-pda'); ?></td>
+                            <td><a href="<?php echo admin_url('edit.php?post_type=blog_post&page=blog-pda-migrate'); ?>" class="button button-small"><?php _e('Verificar', 'blog-pda'); ?></a></td>
                         </tr>
                         <tr>
                             <td><strong>2</strong></td>
-                            <td><?php _e('Converter posts para blog_post', 'blog-pda'); ?></td>
-                            <td><a href="<?php echo admin_url('edit.php?post_type=blog_post&page=blog-pda-convert'); ?>" class="button button-small button-primary"><?php _e('Converter', 'blog-pda'); ?></a></td>
+                            <td><?php _e('Salvar links permanentes (atualiza URLs)', 'blog-pda'); ?></td>
+                            <td><a href="<?php echo admin_url('options-permalink.php'); ?>" class="button button-small"><?php _e('Permalinks', 'blog-pda'); ?></a></td>
                         </tr>
                         <tr>
                             <td><strong>3</strong></td>
-                            <td><?php _e('Verificar/migrar taxonomias restantes', 'blog-pda'); ?></td>
-                            <td><a href="<?php echo admin_url('edit.php?post_type=blog_post&page=blog-pda-migrate'); ?>" class="button button-small"><?php _e('Taxonomias', 'blog-pda'); ?></a></td>
-                        </tr>
-                        <tr>
-                            <td><strong>4</strong></td>
-                            <td><?php _e('Salvar links permanentes (atualiza rewrite rules)', 'blog-pda'); ?></td>
-                            <td><a href="<?php echo admin_url('options-permalink.php'); ?>" class="button button-small"><?php _e('Permalinks', 'blog-pda'); ?></a></td>
+                            <td><?php _e('Verificar os posts importados', 'blog-pda'); ?></td>
+                            <td><a href="<?php echo admin_url('edit.php?post_type=blog_post'); ?>" class="button button-small button-primary"><?php _e('Ver Posts', 'blog-pda'); ?></a></td>
                         </tr>
                     </tbody>
                 </table>
                 
                 <div class="notice notice-success inline" style="margin-top: 20px;">
-                    <p><strong><?php _e('Resultado:', 'blog-pda'); ?></strong><br>
+                    <p><strong><?php _e('✅ Resultado esperado:', 'blog-pda'); ?></strong><br>
                     <?php _e('URL original: <code>https://www.parquedasaves.com.br/blog/meu-post/</code>', 'blog-pda'); ?><br>
                     <?php _e('URL final: <code>' . home_url('/blog/meu-post/') . '</code>', 'blog-pda'); ?></p>
                 </div>
+            </div>
+            
+            <div class="card" style="max-width: 900px; padding: 20px; margin-top: 20px;">
+                <h2><?php _e('🔄 Método Alternativo: WordPress Importer + Conversão', 'blog-pda'); ?></h2>
+                <p><?php _e('Se você já importou usando o WordPress Importer nativo (posts ficaram como "post"):', 'blog-pda'); ?></p>
+                <p>
+                    <a href="<?php echo admin_url('edit.php?post_type=blog_post&page=blog-pda-convert'); ?>" class="button button-primary">
+                        <?php _e('🔄 Converter Posts WordPress para Blog', 'blog-pda'); ?>
+                    </a>
+                </p>
+                <p><small><?php _e('Esta ferramenta converte posts do tipo "post" para "blog_post" e migra as taxonomias automaticamente.', 'blog-pda'); ?></small></p>
             </div>
         </div>
         <?php
