@@ -119,6 +119,47 @@ if ($popular_query->post_count < 5) {
         </div>
         <?php endif; ?>
         
+        <!-- Player: Ouvir a Notícia -->
+        <?php 
+        $audio_url = get_post_meta(get_the_ID(), '_blog_audio_url', true);
+        if (!empty($audio_url)) : 
+        ?>
+        <div class="blog-listen-section">
+            <div class="blog-container blog-container-narrow">
+                <div class="blog-listen-player">
+                    <div class="blog-listen-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                        </svg>
+                    </div>
+                    <div class="blog-listen-content">
+                        <h4 class="blog-listen-title"><?php _e('Ouvir a notícia:', 'blog-pda'); ?> <?php the_title(); ?></h4>
+                        <div class="blog-listen-controls">
+                            <button class="blog-listen-play-btn" aria-label="<?php _e('Reproduzir', 'blog-pda'); ?>">
+                                <svg class="play-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                <svg class="pause-icon" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                                    <rect x="6" y="4" width="4" height="16"></rect>
+                                    <rect x="14" y="4" width="4" height="16"></rect>
+                                </svg>
+                            </button>
+                            <span class="blog-listen-time">
+                                <span class="blog-listen-current">00:00</span> / <span class="blog-listen-duration">00:00</span>
+                            </span>
+                            <div class="blog-listen-progress">
+                                <div class="blog-listen-progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <audio class="blog-listen-audio" preload="metadata">
+                        <source src="<?php echo esc_url($audio_url); ?>" type="audio/mpeg">
+                    </audio>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
+        
         <!-- Conteúdo -->
         <div class="blog-single-content">
             <div class="blog-container blog-container-narrow">

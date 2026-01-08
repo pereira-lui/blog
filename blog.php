@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.8.1
+ * Version: 1.8.2
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.8.1');
+define('BLOG_PDA_VERSION', '1.8.2');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -2365,6 +2365,82 @@ final class Blog_PDA {
             'side',
             'high'
         );
+        
+        // Add audio meta box for "Ouvir a notícia"
+        add_meta_box(
+            'blog_pda_audio',
+            __('Ouvir a Notícia', 'blog-pda'),
+            [$this, 'audio_meta_box_callback'],
+            'blog_post',
+            'normal',
+            'high'
+        );
+    }
+
+    /**
+     * Audio meta box callback - "Ouvir a Notícia"
+     */
+    public function audio_meta_box_callback($post) {
+        wp_nonce_field('blog_pda_audio_nonce', 'blog_pda_audio_nonce');
+        $audio_url = get_post_meta($post->ID, '_blog_audio_url', true);
+        
+        // Enqueue media uploader
+        wp_enqueue_media();
+        ?>
+        <style>
+            .blog-audio-field { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+            .blog-audio-field input[type="text"] { flex: 1; }
+            .blog-audio-preview { margin-top: 10px; }
+            .blog-audio-preview audio { width: 100%; }
+        </style>
+        
+        <p><?php _e('Adicione um áudio para que os visitantes possam ouvir a notícia.', 'blog-pda'); ?></p>
+        
+        <div class="blog-audio-field">
+            <input type="text" id="blog_audio_url" name="blog_audio_url" value="<?php echo esc_url($audio_url); ?>" placeholder="<?php _e('URL do áudio', 'blog-pda'); ?>" style="width: 100%;">
+            <button type="button" class="button" id="blog_upload_audio_btn"><?php _e('Upload Áudio', 'blog-pda'); ?></button>
+        </div>
+        
+        <?php if ($audio_url) : ?>
+        <div class="blog-audio-preview">
+            <audio controls src="<?php echo esc_url($audio_url); ?>"></audio>
+        </div>
+        <?php endif; ?>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            var audioFrame;
+            
+            $('#blog_upload_audio_btn').on('click', function(e) {
+                e.preventDefault();
+                
+                if (audioFrame) {
+                    audioFrame.open();
+                    return;
+                }
+                
+                audioFrame = wp.media({
+                    title: '<?php _e('Selecionar Áudio', 'blog-pda'); ?>',
+                    button: { text: '<?php _e('Usar este áudio', 'blog-pda'); ?>' },
+                    library: { type: 'audio' },
+                    multiple: false
+                });
+                
+                audioFrame.on('select', function() {
+                    var attachment = audioFrame.state().get('selection').first().toJSON();
+                    $('#blog_audio_url').val(attachment.url);
+                    
+                    // Update preview
+                    var previewHtml = '<div class="blog-audio-preview"><audio controls src="' + attachment.url + '"></audio></div>';
+                    $('.blog-audio-preview').remove();
+                    $('#blog_audio_url').closest('.blog-audio-field').after(previewHtml);
+                });
+                
+                audioFrame.open();
+            });
+        });
+        </script>
+        <?php
     }
 
     /**
@@ -2385,25 +2461,36 @@ final class Blog_PDA {
      * Save featured meta
      */
     public function save_featured_meta($post_id) {
-        if (!isset($_POST['blog_pda_featured_nonce']) || !wp_verify_nonce($_POST['blog_pda_featured_nonce'], 'blog_pda_featured_nonce')) {
-            return;
+        // Save featured meta
+        if (isset($_POST['blog_pda_featured_nonce']) && wp_verify_nonce($_POST['blog_pda_featured_nonce'], 'blog_pda_featured_nonce')) {
+            if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
+                if (current_user_can('edit_post', $post_id)) {
+                    // If this post is being set as featured, remove featured from other posts
+                    if (isset($_POST['blog_featured']) && $_POST['blog_featured'] === '1') {
+                        global $wpdb;
+                        $wpdb->delete($wpdb->postmeta, ['meta_key' => '_blog_featured', 'meta_value' => '1']);
+                        update_post_meta($post_id, '_blog_featured', '1');
+                    } else {
+                        delete_post_meta($post_id, '_blog_featured');
+                    }
+                }
+            }
         }
         
-        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
-            return;
-        }
-        
-        if (!current_user_can('edit_post', $post_id)) {
-            return;
-        }
-        
-        // If this post is being set as featured, remove featured from other posts
-        if (isset($_POST['blog_featured']) && $_POST['blog_featured'] === '1') {
-            global $wpdb;
-            $wpdb->delete($wpdb->postmeta, ['meta_key' => '_blog_featured', 'meta_value' => '1']);
-            update_post_meta($post_id, '_blog_featured', '1');
-        } else {
-            delete_post_meta($post_id, '_blog_featured');
+        // Save audio meta
+        if (isset($_POST['blog_pda_audio_nonce']) && wp_verify_nonce($_POST['blog_pda_audio_nonce'], 'blog_pda_audio_nonce')) {
+            if (!defined('DOING_AUTOSAVE') || !DOING_AUTOSAVE) {
+                if (current_user_can('edit_post', $post_id)) {
+                    if (isset($_POST['blog_audio_url'])) {
+                        $audio_url = esc_url_raw($_POST['blog_audio_url']);
+                        if (!empty($audio_url)) {
+                            update_post_meta($post_id, '_blog_audio_url', $audio_url);
+                        } else {
+                            delete_post_meta($post_id, '_blog_audio_url');
+                        }
+                    }
+                }
+            }
         }
     }
 

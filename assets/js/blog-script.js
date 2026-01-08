@@ -15,6 +15,7 @@
         initCopyLink();
         initVideoModal();
         initPodcastPlayers();
+        initListenPlayer();
     });
 
     /**
@@ -380,6 +381,78 @@
             link.addEventListener('click', function(e) {
                 e.stopPropagation();
             });
+        });
+    }
+
+    /**
+     * Initialize Listen Player (Ouvir a Notícia)
+     */
+    function initListenPlayer() {
+        const player = document.querySelector('.blog-listen-player');
+        if (!player) return;
+        
+        const audio = player.querySelector('.blog-listen-audio');
+        const playBtn = player.querySelector('.blog-listen-play-btn');
+        const playIcon = playBtn.querySelector('.play-icon');
+        const pauseIcon = playBtn.querySelector('.pause-icon');
+        const currentTime = player.querySelector('.blog-listen-current');
+        const durationEl = player.querySelector('.blog-listen-duration');
+        const progressBar = player.querySelector('.blog-listen-progress-bar');
+        const progressContainer = player.querySelector('.blog-listen-progress');
+        
+        if (!audio || !playBtn) return;
+        
+        // Format time helper
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === Infinity) return '00:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+        }
+        
+        // Update duration when metadata is loaded
+        audio.addEventListener('loadedmetadata', function() {
+            durationEl.textContent = formatTime(audio.duration);
+        });
+        
+        // If duration is already available
+        if (audio.duration) {
+            durationEl.textContent = formatTime(audio.duration);
+        }
+        
+        // Play/Pause toggle
+        playBtn.addEventListener('click', function() {
+            if (audio.paused) {
+                audio.play();
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
+            } else {
+                audio.pause();
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+            }
+        });
+        
+        // Update progress bar and current time
+        audio.addEventListener('timeupdate', function() {
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progressBar.style.width = percent + '%';
+            currentTime.textContent = formatTime(audio.currentTime);
+        });
+        
+        // Reset when audio ends
+        audio.addEventListener('ended', function() {
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+            progressBar.style.width = '0%';
+            currentTime.textContent = '00:00';
+        });
+        
+        // Click on progress bar to seek
+        progressContainer.addEventListener('click', function(e) {
+            const rect = progressContainer.getBoundingClientRect();
+            const percent = (e.clientX - rect.left) / rect.width;
+            audio.currentTime = percent * audio.duration;
         });
     }
 
