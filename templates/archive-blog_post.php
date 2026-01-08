@@ -1,6 +1,7 @@
 <?php
 /**
  * Template para Arquivo do Blog
+ * Layout baseado no wireframe
  * 
  * @package Blog_PDA
  */
@@ -8,10 +9,18 @@
 get_header();
 
 // Configurações
-$posts_per_page = 9;
-$featured_post = null;
+$posts_per_page = 6;
 
-// Buscar post em destaque (mais recente ou fixado)
+// Buscar posts para o hero (1 grande + 3 pequenos)
+$hero_args = [
+    'post_type' => 'blog_post',
+    'posts_per_page' => 4,
+    'post_status' => 'publish',
+    'orderby' => 'date',
+    'order' => 'DESC'
+];
+
+// Verificar se há post em destaque
 $featured_args = [
     'post_type' => 'blog_post',
     'posts_per_page' => 1,
@@ -25,23 +34,28 @@ $featured_args = [
     ]
 ];
 $featured_query = new WP_Query($featured_args);
-
-if (!$featured_query->have_posts()) {
-    // Se não houver post fixado, pegar o mais recente
-    $featured_args = [
-        'post_type' => 'blog_post',
-        'posts_per_page' => 1,
-        'post_status' => 'publish',
-        'orderby' => 'date',
-        'order' => 'DESC'
-    ];
-    $featured_query = new WP_Query($featured_args);
-}
+$featured_id = null;
 
 if ($featured_query->have_posts()) {
     $featured_query->the_post();
-    $featured_post = get_the_ID();
+    $featured_id = get_the_ID();
     wp_reset_postdata();
+}
+
+$hero_query = new WP_Query($hero_args);
+$hero_posts = [];
+if ($hero_query->have_posts()) {
+    while ($hero_query->have_posts()) {
+        $hero_query->the_post();
+        $hero_posts[] = get_the_ID();
+    }
+    wp_reset_postdata();
+}
+
+// Se tiver post em destaque, ele vai primeiro
+if ($featured_id && !in_array($featured_id, $hero_posts)) {
+    array_unshift($hero_posts, $featured_id);
+    $hero_posts = array_slice($hero_posts, 0, 4);
 }
 
 // Buscar posts mais lidos
@@ -49,23 +63,10 @@ $popular_args = [
     'post_type' => 'blog_post',
     'posts_per_page' => 10,
     'post_status' => 'publish',
-    'meta_key' => 'blog_post_views',
-    'orderby' => 'meta_value_num',
+    'orderby' => 'date',
     'order' => 'DESC'
 ];
 $popular_query = new WP_Query($popular_args);
-
-// Se não houver views suficientes, ordenar por data
-if ($popular_query->post_count < 5) {
-    $popular_args = [
-        'post_type' => 'blog_post',
-        'posts_per_page' => 10,
-        'post_status' => 'publish',
-        'orderby' => 'date',
-        'order' => 'DESC'
-    ];
-    $popular_query = new WP_Query($popular_args);
-}
 ?>
 
 <main id="blog-main" class="blog-pda-archive">
@@ -75,41 +76,57 @@ if ($popular_query->post_count < 5) {
         <div class="blog-container">
             <h1 class="blog-hero-title"><?php _e('O blog mais querido da Mata Atlântica', 'blog-pda'); ?></h1>
             
-            <?php if ($featured_post) : 
-                $post = get_post($featured_post);
-                setup_postdata($post);
-                $categories = get_the_terms($featured_post, 'blog_category');
-            ?>
-            <div class="blog-featured-post">
-                <div class="blog-featured-image">
-                    <?php if (has_post_thumbnail($featured_post)) : ?>
-                        <a href="<?php echo get_permalink($featured_post); ?>">
-                            <?php echo get_the_post_thumbnail($featured_post, 'large'); ?>
-                        </a>
-                    <?php endif; ?>
-                </div>
-                <div class="blog-featured-content">
-                    <?php if ($categories && !is_wp_error($categories)) : ?>
-                        <div class="blog-featured-categories">
-                            <?php foreach ($categories as $cat) : ?>
-                                <a href="<?php echo get_term_link($cat); ?>" class="blog-category-tag"><?php echo esc_html($cat->name); ?></a>
-                            <?php endforeach; ?>
+            <?php if (!empty($hero_posts)) : ?>
+            <div class="blog-hero-grid">
+                <!-- Post Principal (Grande) -->
+                <?php 
+                $main_post_id = $hero_posts[0];
+                $main_post = get_post($main_post_id);
+                $main_categories = get_the_terms($main_post_id, 'blog_category');
+                ?>
+                <article class="blog-hero-main">
+                    <a href="<?php echo get_permalink($main_post_id); ?>" class="blog-hero-main-link">
+                        <div class="blog-hero-main-image">
+                            <?php if (has_post_thumbnail($main_post_id)) : ?>
+                                <?php echo get_the_post_thumbnail($main_post_id, 'large'); ?>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
-                    <h2 class="blog-featured-title">
-                        <a href="<?php echo get_permalink($featured_post); ?>"><?php echo get_the_title($featured_post); ?></a>
-                    </h2>
-                    <div class="blog-featured-excerpt">
-                        <?php echo wp_trim_words(get_the_excerpt($featured_post), 30); ?>
-                    </div>
-                    <div class="blog-featured-meta">
-                        <span class="blog-meta-date"><?php echo get_the_date('d/m/Y', $featured_post); ?></span>
-                        <span class="blog-meta-author"><?php _e('Por', 'blog-pda'); ?> <?php echo get_the_author_meta('display_name', get_post_field('post_author', $featured_post)); ?></span>
-                    </div>
-                    <a href="<?php echo get_permalink($featured_post); ?>" class="blog-featured-link"><?php _e('Leia mais', 'blog-pda'); ?></a>
+                        <div class="blog-hero-main-content">
+                            <?php if ($main_categories && !is_wp_error($main_categories)) : ?>
+                                <span class="blog-category-tag"><?php echo esc_html($main_categories[0]->name); ?></span>
+                            <?php endif; ?>
+                            <h2 class="blog-hero-main-title"><?php echo get_the_title($main_post_id); ?></h2>
+                            <p class="blog-hero-main-excerpt"><?php echo wp_trim_words(get_the_excerpt($main_post_id), 20); ?></p>
+                        </div>
+                    </a>
+                </article>
+                
+                <!-- Posts Secundários (3 pequenos) -->
+                <div class="blog-hero-sidebar">
+                    <?php 
+                    $sidebar_posts = array_slice($hero_posts, 1, 3);
+                    foreach ($sidebar_posts as $post_id) : 
+                        $categories = get_the_terms($post_id, 'blog_category');
+                    ?>
+                    <article class="blog-hero-sidebar-item">
+                        <a href="<?php echo get_permalink($post_id); ?>" class="blog-hero-sidebar-link">
+                            <div class="blog-hero-sidebar-image">
+                                <?php if (has_post_thumbnail($post_id)) : ?>
+                                    <?php echo get_the_post_thumbnail($post_id, 'medium'); ?>
+                                <?php endif; ?>
+                            </div>
+                            <div class="blog-hero-sidebar-content">
+                                <?php if ($categories && !is_wp_error($categories)) : ?>
+                                    <span class="blog-category-tag-small"><?php echo esc_html($categories[0]->name); ?></span>
+                                <?php endif; ?>
+                                <h3 class="blog-hero-sidebar-title"><?php echo get_the_title($post_id); ?></h3>
+                            </div>
+                        </a>
+                    </article>
+                    <?php endforeach; ?>
                 </div>
             </div>
-            <?php wp_reset_postdata(); endif; ?>
+            <?php endif; ?>
         </div>
     </section>
 
@@ -119,23 +136,25 @@ if ($popular_query->post_count < 5) {
         <div class="blog-container">
             <h2 class="blog-section-title"><?php _e('Os 10 artigos mais lidos', 'blog-pda'); ?></h2>
             <div class="blog-popular-slider">
+                <button class="blog-slider-prev" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>
+                </button>
                 <div class="blog-popular-track">
                     <?php while ($popular_query->have_posts()) : $popular_query->the_post(); ?>
                     <div class="blog-popular-item">
                         <a href="<?php the_permalink(); ?>" class="blog-popular-link">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <div class="blog-popular-image">
+                            <div class="blog-popular-image">
+                                <?php if (has_post_thumbnail()) : ?>
                                     <?php the_post_thumbnail('medium'); ?>
-                                </div>
-                            <?php endif; ?>
+                                <?php else : ?>
+                                    <div class="blog-popular-placeholder"></div>
+                                <?php endif; ?>
+                            </div>
                             <h3 class="blog-popular-title"><?php the_title(); ?></h3>
                         </a>
                     </div>
                     <?php endwhile; ?>
                 </div>
-                <button class="blog-slider-prev" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>
-                </button>
                 <button class="blog-slider-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
                 </button>
@@ -146,18 +165,25 @@ if ($popular_query->post_count < 5) {
 
     <!-- Todas as Publicações -->
     <section class="blog-all-posts-section">
+        <div class="blog-all-posts-header">
+            <div class="blog-container">
+                <h2 class="blog-section-title-white">
+                    <?php _e('Todas', 'blog-pda'); ?><br>
+                    <?php _e('as publicações', 'blog-pda'); ?>
+                </h2>
+            </div>
+        </div>
         <div class="blog-container">
-            <h2 class="blog-section-title"><?php _e('Todas as publicações', 'blog-pda'); ?></h2>
-            
             <div class="blog-posts-grid" id="blog-posts-grid">
                 <?php
+                $exclude_ids = $hero_posts;
                 $all_posts_args = [
                     'post_type' => 'blog_post',
                     'posts_per_page' => $posts_per_page,
                     'post_status' => 'publish',
                     'orderby' => 'date',
                     'order' => 'DESC',
-                    'post__not_in' => $featured_post ? [$featured_post] : []
+                    'post__not_in' => $exclude_ids
                 ];
                 $all_posts_query = new WP_Query($all_posts_args);
                 
@@ -167,21 +193,16 @@ if ($popular_query->post_count < 5) {
                 ?>
                 <article class="blog-post-card">
                     <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
-                        <?php if (has_post_thumbnail()) : ?>
                         <div class="blog-post-card-image">
-                            <?php the_post_thumbnail('medium_large'); ?>
+                            <?php if (has_post_thumbnail()) : ?>
+                                <?php the_post_thumbnail('medium_large'); ?>
+                            <?php endif; ?>
                             <?php if ($categories && !is_wp_error($categories)) : ?>
-                            <div class="blog-post-card-categories">
-                                <?php foreach (array_slice($categories, 0, 2) as $cat) : ?>
-                                    <span class="blog-category-tag"><?php echo esc_html($cat->name); ?></span>
-                                <?php endforeach; ?>
-                            </div>
+                            <span class="blog-post-card-category"><?php echo esc_html($categories[0]->name); ?></span>
                             <?php endif; ?>
                         </div>
-                        <?php endif; ?>
                         <div class="blog-post-card-content">
                             <h3 class="blog-post-card-title"><?php the_title(); ?></h3>
-                            <p class="blog-post-card-excerpt"><?php echo wp_trim_words(get_the_excerpt(), 15); ?></p>
                         </div>
                     </a>
                 </article>
@@ -194,14 +215,14 @@ if ($popular_query->post_count < 5) {
             
             <?php 
             $total_posts = wp_count_posts('blog_post')->publish;
-            $shown_posts = $featured_post ? $posts_per_page + 1 : $posts_per_page;
+            $shown_posts = count($hero_posts) + $posts_per_page;
             if ($total_posts > $shown_posts) : 
             ?>
             <div class="blog-load-more-wrapper">
                 <button class="blog-load-more-btn" 
                         data-page="1" 
                         data-per-page="<?php echo $posts_per_page; ?>"
-                        data-exclude="<?php echo $featured_post ? $featured_post : ''; ?>">
+                        data-exclude="<?php echo implode(',', $exclude_ids); ?>">
                     <?php _e('Carregar mais', 'blog-pda'); ?>
                 </button>
             </div>
@@ -209,48 +230,87 @@ if ($popular_query->post_count < 5) {
         </div>
     </section>
 
-    <!-- Veja Também -->
-    <?php 
-    $links = get_option('blog_pda_related_links', []);
-    if (!empty($links)) : 
-    ?>
-    <section class="blog-related-section">
+    <!-- Veja Também (Podcasts) -->
+    <section class="blog-podcasts-section">
         <div class="blog-container">
             <h2 class="blog-section-title"><?php _e('Veja também', 'blog-pda'); ?></h2>
-            <div class="blog-related-links">
-                <?php foreach ($links as $link) : ?>
-                <a href="<?php echo esc_url($link['url']); ?>" class="blog-related-link" target="_blank">
-                    <?php echo esc_html($link['label']); ?>
+            <div class="blog-podcasts-grid">
+                <?php 
+                // Buscar podcasts salvos ou usar padrão
+                $podcasts = get_option('blog_pda_podcasts', [
+                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 1', 'url' => '#'],
+                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 2', 'url' => '#'],
+                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 3', 'url' => '#'],
+                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 4', 'url' => '#'],
+                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 5', 'url' => '#'],
+                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 6', 'url' => '#'],
+                ]);
+                foreach ($podcasts as $podcast) :
+                    $url = isset($podcast['url']) ? $podcast['url'] : '#';
+                ?>
+                <a href="<?php echo esc_url($url); ?>" class="blog-podcast-card">
+                    <div class="blog-podcast-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </div>
+                    <div class="blog-podcast-content">
+                        <h4 class="blog-podcast-title"><?php echo esc_html($podcast['title']); ?></h4>
+                        <p class="blog-podcast-subtitle"><?php echo esc_html($podcast['subtitle']); ?></p>
+                    </div>
                 </a>
                 <?php endforeach; ?>
             </div>
         </div>
     </section>
-    <?php endif; ?>
 
     <!-- Vídeos -->
-    <?php 
-    $videos = get_option('blog_pda_videos', []);
-    if (!empty($videos)) : 
-    ?>
     <section class="blog-videos-section">
         <div class="blog-container">
             <h2 class="blog-section-title"><?php _e('Vídeos', 'blog-pda'); ?></h2>
             <div class="blog-videos-grid">
-                <?php foreach ($videos as $video) : ?>
-                <div class="blog-video-item">
-                    <div class="blog-video-wrapper">
-                        <?php echo wp_oembed_get($video['url']); ?>
-                    </div>
-                    <?php if (!empty($video['title'])) : ?>
-                    <h3 class="blog-video-title"><?php echo esc_html($video['title']); ?></h3>
+                <?php 
+                // Buscar vídeos salvos ou usar placeholders
+                $videos = get_option('blog_pda_videos', []);
+                if (!empty($videos)) :
+                    foreach ($videos as $video) :
+                ?>
+                <div class="blog-video-card" data-video-url="<?php echo esc_url($video['url']); ?>">
+                    <?php if (!empty($video['thumbnail'])) : ?>
+                    <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="<?php echo esc_attr($video['title'] ?? 'Video'); ?>" class="blog-video-thumbnail">
+                    <?php else : ?>
+                    <div class="blog-video-placeholder"></div>
                     <?php endif; ?>
+                    <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </button>
                 </div>
-                <?php endforeach; ?>
+                <?php 
+                    endforeach;
+                else :
+                    // Placeholders quando não há vídeos
+                    for ($i = 0; $i < 5; $i++) :
+                ?>
+                <div class="blog-video-card blog-video-placeholder-card">
+                    <div class="blog-video-placeholder"></div>
+                    <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </button>
+                </div>
+                <?php 
+                    endfor;
+                endif; 
+                ?>
             </div>
         </div>
     </section>
-    <?php endif; ?>
 
 </main>
 
