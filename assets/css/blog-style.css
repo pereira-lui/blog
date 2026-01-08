@@ -883,7 +883,7 @@
 }
 
 .blog-single-featured-image {
-    margin-bottom: 48px;
+    margin-bottom: 20px;
 }
 
 .blog-single-featured-image img {
@@ -892,6 +892,13 @@
     max-height: 560px;
     object-fit: cover;
     border-radius: var(--blog-radius-xl);
+}
+
+.blog-featured-image-caption {
+    font-size: 14px;
+    color: var(--blog-text-muted);
+    margin: 12px 0 0;
+    font-style: italic;
 }
 
 /* ==========================================================================

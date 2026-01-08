@@ -385,74 +385,157 @@
     }
 
     /**
-     * Initialize Listen Player (Ouvir a Notícia)
+     * Initialize Listen Player (Ouvir a Notícia) - Text-to-Speech
      */
     function initListenPlayer() {
-        const player = document.querySelector('.blog-listen-player');
-        if (!player) return;
+        const player = document.getElementById('blog-tts-player');
+        const contentEl = document.getElementById('blog-tts-content');
         
-        const audio = player.querySelector('.blog-listen-audio');
-        const playBtn = player.querySelector('.blog-listen-play-btn');
+        if (!player || !contentEl) return;
+        
+        // Check if Speech Synthesis is supported
+        if (!('speechSynthesis' in window)) {
+            player.style.display = 'none';
+            console.log('Text-to-Speech não suportado neste navegador');
+            return;
+        }
+        
+        const playBtn = document.getElementById('blog-tts-play');
         const playIcon = playBtn.querySelector('.play-icon');
         const pauseIcon = playBtn.querySelector('.pause-icon');
-        const currentTime = player.querySelector('.blog-listen-current');
-        const durationEl = player.querySelector('.blog-listen-duration');
-        const progressBar = player.querySelector('.blog-listen-progress-bar');
-        const progressContainer = player.querySelector('.blog-listen-progress');
+        const currentTimeEl = document.getElementById('blog-tts-current');
+        const durationEl = document.getElementById('blog-tts-duration');
+        const progressBar = document.getElementById('blog-tts-progress');
+        const progressContainer = document.getElementById('blog-tts-progress-container');
         
-        if (!audio || !playBtn) return;
+        // Get text content
+        let text = contentEl.textContent.trim();
+        // Clean up text - remove extra whitespace
+        text = text.replace(/\s+/g, ' ').trim();
+        
+        let utterance = null;
+        let isPlaying = false;
+        let isPaused = false;
+        let startTime = 0;
+        let elapsedTime = 0;
+        let estimatedDuration = 0;
+        let progressInterval = null;
+        
+        // Estimate duration based on average speech rate (150 words per minute)
+        const wordCount = text.split(/\s+/).length;
+        estimatedDuration = Math.ceil((wordCount / 150) * 60); // in seconds
         
         // Format time helper
         function formatTime(seconds) {
-            if (isNaN(seconds) || seconds === Infinity) return '00:00';
+            if (isNaN(seconds) || seconds === Infinity || seconds < 0) return '00:00';
             const mins = Math.floor(seconds / 60);
             const secs = Math.floor(seconds % 60);
             return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
         }
         
-        // Update duration when metadata is loaded
-        audio.addEventListener('loadedmetadata', function() {
-            durationEl.textContent = formatTime(audio.duration);
-        });
+        // Set initial duration estimate
+        durationEl.textContent = formatTime(estimatedDuration);
         
-        // If duration is already available
-        if (audio.duration) {
-            durationEl.textContent = formatTime(audio.duration);
+        // Update progress
+        function updateProgress() {
+            if (!isPlaying || isPaused) return;
+            
+            elapsedTime = (Date.now() - startTime) / 1000;
+            const percent = Math.min((elapsedTime / estimatedDuration) * 100, 100);
+            progressBar.style.width = percent + '%';
+            currentTimeEl.textContent = formatTime(elapsedTime);
+        }
+        
+        // Get Portuguese voice
+        function getPortugueseVoice() {
+            const voices = speechSynthesis.getVoices();
+            // Try to find Brazilian Portuguese first
+            let voice = voices.find(v => v.lang === 'pt-BR');
+            // Fallback to any Portuguese
+            if (!voice) voice = voices.find(v => v.lang.startsWith('pt'));
+            // Fallback to default
+            return voice || voices[0];
+        }
+        
+        // Create and configure utterance
+        function createUtterance() {
+            utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'pt-BR';
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+            
+            const voice = getPortugueseVoice();
+            if (voice) utterance.voice = voice;
+            
+            utterance.onstart = function() {
+                isPlaying = true;
+                isPaused = false;
+                startTime = Date.now();
+                progressInterval = setInterval(updateProgress, 100);
+            };
+            
+            utterance.onend = function() {
+                resetPlayer();
+            };
+            
+            utterance.onerror = function(event) {
+                console.error('TTS Error:', event.error);
+                resetPlayer();
+            };
+        }
+        
+        // Reset player to initial state
+        function resetPlayer() {
+            isPlaying = false;
+            isPaused = false;
+            elapsedTime = 0;
+            playIcon.style.display = 'block';
+            pauseIcon.style.display = 'none';
+            progressBar.style.width = '0%';
+            currentTimeEl.textContent = '00:00';
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
         }
         
         // Play/Pause toggle
         playBtn.addEventListener('click', function() {
-            if (audio.paused) {
-                audio.play();
+            if (!isPlaying && !isPaused) {
+                // Start new speech
+                createUtterance();
+                speechSynthesis.speak(utterance);
                 playIcon.style.display = 'none';
                 pauseIcon.style.display = 'block';
-            } else {
-                audio.pause();
+            } else if (isPlaying && !isPaused) {
+                // Pause
+                speechSynthesis.pause();
+                isPaused = true;
+                if (progressInterval) clearInterval(progressInterval);
                 playIcon.style.display = 'block';
                 pauseIcon.style.display = 'none';
+            } else if (isPaused) {
+                // Resume
+                speechSynthesis.resume();
+                isPaused = false;
+                startTime = Date.now() - (elapsedTime * 1000);
+                progressInterval = setInterval(updateProgress, 100);
+                playIcon.style.display = 'none';
+                pauseIcon.style.display = 'block';
             }
         });
         
-        // Update progress bar and current time
-        audio.addEventListener('timeupdate', function() {
-            const percent = (audio.currentTime / audio.duration) * 100;
-            progressBar.style.width = percent + '%';
-            currentTime.textContent = formatTime(audio.currentTime);
-        });
+        // Load voices (they load async in some browsers)
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = function() {
+                // Voices loaded
+            };
+        }
         
-        // Reset when audio ends
-        audio.addEventListener('ended', function() {
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
-            progressBar.style.width = '0%';
-            currentTime.textContent = '00:00';
-        });
-        
-        // Click on progress bar to seek
-        progressContainer.addEventListener('click', function(e) {
-            const rect = progressContainer.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            audio.currentTime = percent * audio.duration;
+        // Stop speech when leaving page
+        window.addEventListener('beforeunload', function() {
+            speechSynthesis.cancel();
         });
     }
 
