@@ -467,36 +467,36 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
         
         <style>
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> {
-                position: relative;
-                font-family: "Neurial Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                position: relative !important;
+                font-family: "Neurial Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-widget-title {
-                font-size: 32px;
-                font-weight: 700;
-                margin: 0 0 20px;
-                padding-bottom: 15px;
-                border-bottom: 1px solid #0000004f;
+                font-size: 32px !important;
+                font-weight: 700 !important;
+                margin: 0 0 20px !important;
+                padding-bottom: 15px !important;
+                border-bottom: 1px solid #0000004f !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-posts-list {
-                display: flex;
-                flex-direction: column;
+                display: flex !important;
+                flex-direction: column !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-post-item {
-                padding: 16px 0;
-                border-bottom: 1px solid #e0e0e0;
-                transition: all 0.18s ease;
+                padding: 16px 0 !important;
+                border-bottom: 1px solid #e0e0e0 !important;
+                transition: all 0.18s ease !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-post-item a {
-                text-decoration: none;
-                color: inherit;
-                font-weight: 600;
-                font-size: 18px;
-                line-height: 1.5;
-                transition: color 0.18s ease;
+                text-decoration: none !important;
+                color: inherit !important;
+                font-weight: 600 !important;
+                font-size: 18px !important;
+                line-height: 1.5 !important;
+                transition: color 0.18s ease !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-post-item:hover a,
@@ -505,37 +505,37 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-widget-button-wrap {
-                margin-top: 30px;
-                text-align: right;
+                margin-top: 30px !important;
+                text-align: right !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-widget-button {
-                display: inline-block;
-                padding: 12px 24px;
-                font-size: 14px;
-                text-decoration: none;
-                border-radius: 4px;
-                transition: opacity 0.2s ease;
+                display: inline-block !important;
+                padding: 12px 24px !important;
+                font-size: 14px !important;
+                text-decoration: none !important;
+                border-radius: 4px !important;
+                transition: opacity 0.2s ease !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-widget-button:hover {
-                opacity: 0.9;
+                opacity: 0.9 !important;
             }
             
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?> {
-                position: fixed;
-                width: <?php echo $image_width; ?>px;
-                height: <?php echo $image_height; ?>px;
-                object-fit: cover;
-                border-left: <?php echo $border_width; ?>px solid var(--blog-pda-accent, #00AC50);
-                opacity: 0;
-                transition: opacity 0.15s ease;
-                pointer-events: none;
-                z-index: 99999;
+                position: fixed !important;
+                width: <?php echo $image_width; ?>px !important;
+                height: <?php echo $image_height; ?>px !important;
+                object-fit: cover !important;
+                border-left: <?php echo $border_width; ?>px solid var(--blog-pda-accent, #00AC50) !important;
+                opacity: 0 !important;
+                transition: opacity 0.15s ease !important;
+                pointer-events: none !important;
+                z-index: 99999 !important;
             }
             
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?>.blog-pda-active {
-                opacity: 1;
+                opacity: 1 !important;
             }
             
             @media (max-width: 1024px) {
