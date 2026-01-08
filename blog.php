@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.6.2
+ * Version: 1.8.0
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.6.2');
+define('BLOG_PDA_VERSION', '1.8.0');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -421,6 +421,24 @@ final class Blog_PDA {
             'manage_options',
             'blog-pda-settings',
             [$this, 'settings_page_content']
+        );
+        
+        add_submenu_page(
+            'edit.php?post_type=blog_post',
+            __('Vídeos do YouTube', 'blog-pda'),
+            __('🎬 Vídeos YouTube', 'blog-pda'),
+            'manage_options',
+            'blog-pda-videos',
+            [$this, 'videos_page_content']
+        );
+        
+        add_submenu_page(
+            'edit.php?post_type=blog_post',
+            __('Podcasts', 'blog-pda'),
+            __('🎙️ Podcasts', 'blog-pda'),
+            'manage_options',
+            'blog-pda-podcasts',
+            [$this, 'podcasts_page_content']
         );
     }
 
@@ -1895,6 +1913,224 @@ final class Blog_PDA {
             </div>
         </div>
         <?php
+    }
+
+    /**
+     * Videos page content
+     */
+    public function videos_page_content() {
+        // Save videos
+        if (isset($_POST['blog_pda_save_videos']) && check_admin_referer('blog_pda_videos_nonce')) {
+            $videos = [];
+            if (!empty($_POST['video_url']) && is_array($_POST['video_url'])) {
+                foreach ($_POST['video_url'] as $index => $url) {
+                    $url = esc_url_raw(trim($url));
+                    if (!empty($url)) {
+                        $title = isset($_POST['video_title'][$index]) ? sanitize_text_field($_POST['video_title'][$index]) : '';
+                        $videos[] = [
+                            'url' => $url,
+                            'title' => $title,
+                            'thumbnail' => $this->get_youtube_thumbnail($url)
+                        ];
+                    }
+                }
+            }
+            update_option('blog_pda_videos', $videos);
+            echo '<div class="notice notice-success"><p>' . __('Vídeos salvos com sucesso!', 'blog-pda') . '</p></div>';
+        }
+        
+        $videos = get_option('blog_pda_videos', []);
+        ?>
+        <div class="wrap">
+            <h1><?php _e('🎬 Vídeos do YouTube', 'blog-pda'); ?></h1>
+            <p><?php _e('Adicione vídeos do YouTube para exibir como slider na página do blog e nos posts.', 'blog-pda'); ?></p>
+            
+            <form method="post" action="">
+                <?php wp_nonce_field('blog_pda_videos_nonce'); ?>
+                
+                <div class="card" style="max-width: 900px; padding: 20px;">
+                    <h2><?php _e('Lista de Vídeos', 'blog-pda'); ?></h2>
+                    <p class="description"><?php _e('Cole a URL do vídeo do YouTube. A miniatura será gerada automaticamente.', 'blog-pda'); ?></p>
+                    
+                    <div id="videos-list" style="margin-top: 20px;">
+                        <?php if (!empty($videos)) : ?>
+                            <?php foreach ($videos as $index => $video) : ?>
+                            <div class="video-item" style="display: flex; gap: 15px; margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px; align-items: center;">
+                                <?php if (!empty($video['thumbnail'])) : ?>
+                                <div style="flex: 0 0 120px;">
+                                    <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="" style="width: 120px; height: 68px; object-fit: cover; border-radius: 4px;">
+                                </div>
+                                <?php endif; ?>
+                                <div style="flex: 1;">
+                                    <input type="text" name="video_title[]" value="<?php echo esc_attr($video['title']); ?>" placeholder="<?php _e('Título do vídeo (opcional)', 'blog-pda'); ?>" class="regular-text" style="width: 100%; margin-bottom: 8px;">
+                                    <input type="url" name="video_url[]" value="<?php echo esc_url($video['url']); ?>" placeholder="https://www.youtube.com/watch?v=..." class="regular-text" style="width: 100%;">
+                                </div>
+                                <button type="button" class="button remove-video" style="color: #d63638;"><?php _e('Remover', 'blog-pda'); ?></button>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <button type="button" id="add-video" class="button button-secondary">
+                            <?php _e('+ Adicionar Vídeo', 'blog-pda'); ?>
+                        </button>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 20px;">
+                    <input type="submit" name="blog_pda_save_videos" class="button button-primary button-hero" value="<?php _e('💾 Salvar Vídeos', 'blog-pda'); ?>">
+                </p>
+            </form>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Add new video
+            $('#add-video').on('click', function() {
+                var html = '<div class="video-item" style="display: flex; gap: 15px; margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px; align-items: center;">' +
+                    '<div style="flex: 1;">' +
+                        '<input type="text" name="video_title[]" placeholder="<?php _e('Título do vídeo (opcional)', 'blog-pda'); ?>" class="regular-text" style="width: 100%; margin-bottom: 8px;">' +
+                        '<input type="url" name="video_url[]" placeholder="https://www.youtube.com/watch?v=..." class="regular-text" style="width: 100%;">' +
+                    '</div>' +
+                    '<button type="button" class="button remove-video" style="color: #d63638;"><?php _e('Remover', 'blog-pda'); ?></button>' +
+                '</div>';
+                $('#videos-list').append(html);
+            });
+            
+            // Remove video
+            $(document).on('click', '.remove-video', function() {
+                $(this).closest('.video-item').remove();
+            });
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * Podcasts page content
+     */
+    public function podcasts_page_content() {
+        // Save podcasts
+        if (isset($_POST['blog_pda_save_podcasts']) && check_admin_referer('blog_pda_podcasts_nonce')) {
+            $podcasts = [];
+            if (!empty($_POST['podcast_title']) && is_array($_POST['podcast_title'])) {
+                foreach ($_POST['podcast_title'] as $index => $title) {
+                    $title = sanitize_text_field(trim($title));
+                    if (!empty($title)) {
+                        $podcasts[] = [
+                            'title' => $title,
+                            'subtitle' => isset($_POST['podcast_subtitle'][$index]) ? sanitize_text_field($_POST['podcast_subtitle'][$index]) : '',
+                            'url' => isset($_POST['podcast_url'][$index]) ? esc_url_raw($_POST['podcast_url'][$index]) : '#'
+                        ];
+                    }
+                }
+            }
+            update_option('blog_pda_podcasts', $podcasts);
+            echo '<div class="notice notice-success"><p>' . __('Podcasts salvos com sucesso!', 'blog-pda') . '</p></div>';
+        }
+        
+        $podcasts = get_option('blog_pda_podcasts', []);
+        ?>
+        <div class="wrap">
+            <h1><?php _e('🎙️ Podcasts', 'blog-pda'); ?></h1>
+            <p><?php _e('Adicione links para podcasts que serão exibidos na seção "Veja também".', 'blog-pda'); ?></p>
+            
+            <form method="post" action="">
+                <?php wp_nonce_field('blog_pda_podcasts_nonce'); ?>
+                
+                <div class="card" style="max-width: 900px; padding: 20px;">
+                    <h2><?php _e('Lista de Podcasts', 'blog-pda'); ?></h2>
+                    
+                    <div id="podcasts-list" style="margin-top: 20px;">
+                        <?php if (!empty($podcasts)) : ?>
+                            <?php foreach ($podcasts as $index => $podcast) : ?>
+                            <div class="podcast-item" style="display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px; align-items: center;">
+                                <input type="text" name="podcast_title[]" value="<?php echo esc_attr($podcast['title']); ?>" placeholder="<?php _e('Título', 'blog-pda'); ?>" class="regular-text">
+                                <input type="text" name="podcast_subtitle[]" value="<?php echo esc_attr($podcast['subtitle']); ?>" placeholder="<?php _e('Subtítulo/Episódio', 'blog-pda'); ?>" class="regular-text">
+                                <input type="url" name="podcast_url[]" value="<?php echo esc_url($podcast['url']); ?>" placeholder="<?php _e('URL do podcast', 'blog-pda'); ?>" class="regular-text">
+                                <button type="button" class="button remove-podcast" style="color: #d63638;"><?php _e('Remover', 'blog-pda'); ?></button>
+                            </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                    
+                    <div style="margin-top: 15px;">
+                        <button type="button" id="add-podcast" class="button button-secondary">
+                            <?php _e('+ Adicionar Podcast', 'blog-pda'); ?>
+                        </button>
+                    </div>
+                </div>
+                
+                <p style="margin-top: 20px;">
+                    <input type="submit" name="blog_pda_save_podcasts" class="button button-primary button-hero" value="<?php _e('💾 Salvar Podcasts', 'blog-pda'); ?>">
+                </p>
+            </form>
+        </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            // Add new podcast
+            $('#add-podcast').on('click', function() {
+                var html = '<div class="podcast-item" style="display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 10px; margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px; align-items: center;">' +
+                    '<input type="text" name="podcast_title[]" placeholder="<?php _e('Título', 'blog-pda'); ?>" class="regular-text">' +
+                    '<input type="text" name="podcast_subtitle[]" placeholder="<?php _e('Subtítulo/Episódio', 'blog-pda'); ?>" class="regular-text">' +
+                    '<input type="url" name="podcast_url[]" placeholder="<?php _e('URL do podcast', 'blog-pda'); ?>" class="regular-text">' +
+                    '<button type="button" class="button remove-podcast" style="color: #d63638;"><?php _e('Remover', 'blog-pda'); ?></button>' +
+                '</div>';
+                $('#podcasts-list').append(html);
+            });
+            
+            // Remove podcast
+            $(document).on('click', '.remove-podcast', function() {
+                $(this).closest('.podcast-item').remove();
+            });
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * Get YouTube thumbnail from URL
+     */
+    private function get_youtube_thumbnail($url) {
+        $video_id = '';
+        
+        // youtube.com/watch?v=VIDEO_ID
+        if (preg_match('/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            $video_id = $matches[1];
+        }
+        // youtu.be/VIDEO_ID
+        elseif (preg_match('/youtu\.be\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            $video_id = $matches[1];
+        }
+        // youtube.com/embed/VIDEO_ID
+        elseif (preg_match('/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            $video_id = $matches[1];
+        }
+        
+        if ($video_id) {
+            return 'https://img.youtube.com/vi/' . $video_id . '/mqdefault.jpg';
+        }
+        
+        return '';
+    }
+
+    /**
+     * Get YouTube video ID from URL
+     */
+    public static function get_youtube_video_id($url) {
+        $video_id = '';
+        
+        if (preg_match('/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            $video_id = $matches[1];
+        } elseif (preg_match('/youtu\.be\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            $video_id = $matches[1];
+        } elseif (preg_match('/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
+            $video_id = $matches[1];
+        }
+        
+        return $video_id;
     }
 
     /**

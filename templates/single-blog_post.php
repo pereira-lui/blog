@@ -229,14 +229,34 @@ if ($popular_query->post_count < 5) {
     <section class="blog-videos-section">
         <div class="blog-container">
             <h2 class="blog-section-title"><?php _e('Vídeos', 'blog-pda'); ?></h2>
-            <div class="blog-videos-grid">
-                <?php foreach (array_slice($videos, 0, 3) as $video) : ?>
-                <div class="blog-video-item">
-                    <div class="blog-video-wrapper">
-                        <?php echo wp_oembed_get($video['url']); ?>
+            <div class="blog-videos-slider">
+                <button class="blog-videos-prev" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>
+                </button>
+                <div class="blog-videos-track">
+                    <?php foreach ($videos as $video) : 
+                        $video_id = Blog_PDA::get_youtube_video_id($video['url']);
+                    ?>
+                    <div class="blog-video-card" data-video-id="<?php echo esc_attr($video_id); ?>">
+                        <?php if (!empty($video['thumbnail'])) : ?>
+                        <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="<?php echo esc_attr($video['title'] ?? 'Video'); ?>" class="blog-video-thumbnail">
+                        <?php else : ?>
+                        <div class="blog-video-placeholder"></div>
+                        <?php endif; ?>
+                        <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </button>
+                        <?php if (!empty($video['title'])) : ?>
+                        <span class="blog-video-title"><?php echo esc_html($video['title']); ?></span>
+                        <?php endif; ?>
                     </div>
+                    <?php endforeach; ?>
                 </div>
-                <?php endforeach; ?>
+                <button class="blog-videos-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
+                </button>
             </div>
         </div>
     </section>
@@ -273,24 +293,50 @@ if ($popular_query->post_count < 5) {
     </section>
     <?php endif; ?>
 
-    <!-- Fique por Dentro -->
+    <!-- Fique por Dentro (Podcasts) -->
     <?php 
     $podcasts = get_option('blog_pda_podcasts', []);
     if (!empty($podcasts)) : 
     ?>
     <section class="blog-podcasts-section">
         <div class="blog-container">
-            <h2 class="blog-section-title"><?php _e('Fique por dentro', 'blog-pda'); ?></h2>
-            <div class="blog-podcasts-list">
-                <?php foreach ($podcasts as $podcast) : ?>
-                <a href="<?php echo esc_url($podcast['url']); ?>" class="blog-podcast-link" target="_blank">
-                    <?php echo esc_html($podcast['label']); ?>
+            <h2 class="blog-section-title"><?php _e('Veja também', 'blog-pda'); ?></h2>
+            <div class="blog-podcasts-grid">
+                <?php foreach ($podcasts as $podcast) : 
+                    $url = isset($podcast['url']) ? $podcast['url'] : '#';
+                ?>
+                <a href="<?php echo esc_url($url); ?>" class="blog-podcast-card" target="_blank">
+                    <div class="blog-podcast-icon">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </div>
+                    <div class="blog-podcast-content">
+                        <h4 class="blog-podcast-title"><?php echo esc_html($podcast['title']); ?></h4>
+                        <p class="blog-podcast-subtitle"><?php echo esc_html($podcast['subtitle']); ?></p>
+                    </div>
                 </a>
                 <?php endforeach; ?>
             </div>
         </div>
     </section>
     <?php endif; ?>
+
+    <!-- Modal de Vídeo -->
+    <div id="blog-video-modal" class="blog-video-modal" style="display: none;">
+        <div class="blog-video-modal-overlay"></div>
+        <div class="blog-video-modal-content">
+            <button class="blog-video-modal-close" aria-label="<?php _e('Fechar', 'blog-pda'); ?>">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="blog-video-modal-iframe">
+                <iframe id="blog-video-iframe" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
 
 </main>
 

@@ -10,12 +10,14 @@
     // Wait for DOM
     document.addEventListener('DOMContentLoaded', function() {
         initSliders();
+        initVideoSliders();
         initLoadMore();
         initCopyLink();
+        initVideoModal();
     });
 
     /**
-     * Initialize Sliders
+     * Initialize Popular Posts Sliders
      */
     function initSliders() {
         const sliders = document.querySelectorAll('.blog-popular-slider');
@@ -61,37 +63,146 @@
             track.addEventListener('scroll', updateButtons);
             updateButtons();
             
-            // Touch/drag support
-            let isDown = false;
-            let startX;
-            let scrollLeft;
+            initDragScroll(track);
+        });
+    }
+
+    /**
+     * Initialize Video Sliders
+     */
+    function initVideoSliders() {
+        const sliders = document.querySelectorAll('.blog-videos-slider');
+        
+        sliders.forEach(function(slider) {
+            const track = slider.querySelector('.blog-videos-track');
+            const prevBtn = slider.querySelector('.blog-videos-prev');
+            const nextBtn = slider.querySelector('.blog-videos-next');
             
-            track.addEventListener('mousedown', function(e) {
-                isDown = true;
-                track.style.cursor = 'grabbing';
-                startX = e.pageX - track.offsetLeft;
-                scrollLeft = track.scrollLeft;
-            });
+            if (!track) return;
             
-            track.addEventListener('mouseleave', function() {
-                isDown = false;
-                track.style.cursor = 'grab';
-            });
+            const scrollAmount = 216; // item width + gap
             
-            track.addEventListener('mouseup', function() {
-                isDown = false;
-                track.style.cursor = 'grab';
-            });
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function() {
+                    track.scrollBy({
+                        left: -scrollAmount * 2,
+                        behavior: 'smooth'
+                    });
+                });
+            }
             
-            track.addEventListener('mousemove', function(e) {
-                if (!isDown) return;
-                e.preventDefault();
-                const x = e.pageX - track.offsetLeft;
-                const walk = (x - startX) * 2;
-                track.scrollLeft = scrollLeft - walk;
-            });
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    track.scrollBy({
+                        left: scrollAmount * 2,
+                        behavior: 'smooth'
+                    });
+                });
+            }
             
+            // Update button visibility based on scroll position
+            function updateButtons() {
+                if (prevBtn) {
+                    prevBtn.style.opacity = track.scrollLeft <= 0 ? '0.5' : '1';
+                }
+                if (nextBtn) {
+                    const maxScroll = track.scrollWidth - track.clientWidth;
+                    nextBtn.style.opacity = track.scrollLeft >= maxScroll - 10 ? '0.5' : '1';
+                }
+            }
+            
+            track.addEventListener('scroll', updateButtons);
+            updateButtons();
+            
+            initDragScroll(track);
+        });
+    }
+
+    /**
+     * Initialize Drag Scroll for tracks
+     */
+    function initDragScroll(track) {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+        
+        track.addEventListener('mousedown', function(e) {
+            isDown = true;
+            track.style.cursor = 'grabbing';
+            startX = e.pageX - track.offsetLeft;
+            scrollLeft = track.scrollLeft;
+        });
+        
+        track.addEventListener('mouseleave', function() {
+            isDown = false;
             track.style.cursor = 'grab';
+        });
+        
+        track.addEventListener('mouseup', function() {
+            isDown = false;
+            track.style.cursor = 'grab';
+        });
+        
+        track.addEventListener('mousemove', function(e) {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - track.offsetLeft;
+            const walk = (x - startX) * 2;
+            track.scrollLeft = scrollLeft - walk;
+        });
+        
+        track.style.cursor = 'grab';
+    }
+
+    /**
+     * Initialize Video Modal
+     */
+    function initVideoModal() {
+        const modal = document.getElementById('blog-video-modal');
+        if (!modal) return;
+        
+        const iframe = document.getElementById('blog-video-iframe');
+        const overlay = modal.querySelector('.blog-video-modal-overlay');
+        const closeBtn = modal.querySelector('.blog-video-modal-close');
+        
+        // Click on video play buttons
+        document.querySelectorAll('.blog-video-card').forEach(function(card) {
+            card.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const videoId = this.dataset.videoId;
+                if (!videoId) return;
+                
+                // Set iframe src
+                iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+                
+                // Show modal
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            });
+        });
+        
+        // Close modal
+        function closeModal() {
+            modal.style.display = 'none';
+            iframe.src = '';
+            document.body.style.overflow = '';
+        }
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeModal);
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', closeModal);
+        }
+        
+        // Close with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                closeModal();
+            }
         });
     }
 

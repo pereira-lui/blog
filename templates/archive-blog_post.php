@@ -231,20 +231,15 @@ $popular_query = new WP_Query($popular_args);
     </section>
 
     <!-- Veja Também (Podcasts) -->
+    <?php 
+    $podcasts = get_option('blog_pda_podcasts', []);
+    if (!empty($podcasts)) : 
+    ?>
     <section class="blog-podcasts-section">
         <div class="blog-container">
             <h2 class="blog-section-title"><?php _e('Veja também', 'blog-pda'); ?></h2>
             <div class="blog-podcasts-grid">
                 <?php 
-                // Buscar podcasts salvos ou usar padrão
-                $podcasts = get_option('blog_pda_podcasts', [
-                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 1', 'url' => '#'],
-                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 2', 'url' => '#'],
-                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 3', 'url' => '#'],
-                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 4', 'url' => '#'],
-                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 5', 'url' => '#'],
-                    ['title' => 'PODCAST das Aves', 'subtitle' => 'Episódio 6', 'url' => '#'],
-                ]);
                 foreach ($podcasts as $podcast) :
                     $url = isset($podcast['url']) ? $podcast['url'] : '#';
                 ?>
@@ -266,51 +261,61 @@ $popular_query = new WP_Query($popular_args);
             </div>
         </div>
     </section>
+    <?php endif; ?>
 
     <!-- Vídeos -->
+    <?php 
+    $videos = get_option('blog_pda_videos', []);
+    if (!empty($videos)) : 
+    ?>
     <section class="blog-videos-section">
         <div class="blog-container">
             <h2 class="blog-section-title"><?php _e('Vídeos', 'blog-pda'); ?></h2>
-            <div class="blog-videos-grid">
-                <?php 
-                // Buscar vídeos salvos ou usar placeholders
-                $videos = get_option('blog_pda_videos', []);
-                if (!empty($videos)) :
-                    foreach ($videos as $video) :
-                ?>
-                <div class="blog-video-card" data-video-url="<?php echo esc_url($video['url']); ?>">
-                    <?php if (!empty($video['thumbnail'])) : ?>
-                    <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="<?php echo esc_attr($video['title'] ?? 'Video'); ?>" class="blog-video-thumbnail">
-                    <?php else : ?>
-                    <div class="blog-video-placeholder"></div>
-                    <?php endif; ?>
-                    <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                    </button>
+            <div class="blog-videos-slider">
+                <button class="blog-videos-prev" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>
+                </button>
+                <div class="blog-videos-track">
+                    <?php foreach ($videos as $video) : 
+                        $video_id = Blog_PDA::get_youtube_video_id($video['url']);
+                    ?>
+                    <div class="blog-video-card" data-video-id="<?php echo esc_attr($video_id); ?>">
+                        <?php if (!empty($video['thumbnail'])) : ?>
+                        <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="<?php echo esc_attr($video['title'] ?? 'Video'); ?>" class="blog-video-thumbnail">
+                        <?php else : ?>
+                        <div class="blog-video-placeholder"></div>
+                        <?php endif; ?>
+                        <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </button>
+                        <?php if (!empty($video['title'])) : ?>
+                        <span class="blog-video-title"><?php echo esc_html($video['title']); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
-                <?php 
-                    endforeach;
-                else :
-                    // Placeholders quando não há vídeos
-                    for ($i = 0; $i < 5; $i++) :
-                ?>
-                <div class="blog-video-card blog-video-placeholder-card">
-                    <div class="blog-video-placeholder"></div>
-                    <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                    </button>
-                </div>
-                <?php 
-                    endfor;
-                endif; 
-                ?>
+                <button class="blog-videos-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
+                </button>
             </div>
         </div>
     </section>
+    <?php endif; ?>
+
+    <!-- Modal de Vídeo -->
+    <div id="blog-video-modal" class="blog-video-modal" style="display: none;">
+        <div class="blog-video-modal-overlay"></div>
+        <div class="blog-video-modal-content">
+            <button class="blog-video-modal-close" aria-label="<?php _e('Fechar', 'blog-pda'); ?>">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <div class="blog-video-modal-iframe">
+                <iframe id="blog-video-iframe" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
 
 </main>
 
