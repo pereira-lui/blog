@@ -144,9 +144,10 @@ if ($popular_query->post_count < 5) {
                             <span class="blog-listen-time">
                                 <span class="blog-listen-current" id="blog-tts-current">00:00</span> / <span class="blog-listen-duration" id="blog-tts-duration">--:--</span>
                             </span>
-                            <div class="blog-listen-progress" id="blog-tts-progress-container">
-                                <div class="blog-listen-progress-bar" id="blog-tts-progress"></div>
-                            </div>
+                        </div>
+                        <div class="blog-listen-progress" id="blog-tts-progress-container">
+                            <div class="blog-listen-progress-bar" id="blog-tts-progress"></div>
+                            <div class="blog-listen-progress-handle"></div>
                         </div>
                     </div>
                 </div>

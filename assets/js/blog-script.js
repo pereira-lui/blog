@@ -406,6 +406,7 @@
         const currentTimeEl = document.getElementById('blog-tts-current');
         const durationEl = document.getElementById('blog-tts-duration');
         const progressBar = document.getElementById('blog-tts-progress');
+        const progressHandle = player.querySelector('.blog-listen-progress-handle');
         const progressContainer = document.getElementById('blog-tts-progress-container');
         
         // Get text content
@@ -443,6 +444,7 @@
             elapsedTime = (Date.now() - startTime) / 1000;
             const percent = Math.min((elapsedTime / estimatedDuration) * 100, 100);
             progressBar.style.width = percent + '%';
+            if (progressHandle) progressHandle.style.left = percent + '%';
             currentTimeEl.textContent = formatTime(elapsedTime);
         }
         
@@ -493,6 +495,7 @@
             playIcon.style.display = 'block';
             pauseIcon.style.display = 'none';
             progressBar.style.width = '0%';
+            if (progressHandle) progressHandle.style.left = '0%';
             currentTimeEl.textContent = '00:00';
             if (progressInterval) {
                 clearInterval(progressInterval);
