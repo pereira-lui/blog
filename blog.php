@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 2.0.6
+ * Version: 2.0.7
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -2219,11 +2219,27 @@ final class Blog_PDA {
     public static function get_youtube_video_id($url) {
         $video_id = '';
         
-        if (preg_match('/youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/', $url, $matches)) {
+        // Limpa a URL
+        $url = trim($url);
+        
+        // Padrão youtube.com/watch?v=VIDEO_ID (pode ter parâmetros extras como &t=123)
+        if (preg_match('/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/', $url, $matches)) {
             $video_id = $matches[1];
-        } elseif (preg_match('/youtu\.be\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
+        } 
+        // Padrão youtu.be/VIDEO_ID
+        elseif (preg_match('/youtu\.be\/([a-zA-Z0-9_-]{11})/', $url, $matches)) {
             $video_id = $matches[1];
-        } elseif (preg_match('/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/', $url, $matches)) {
+        } 
+        // Padrão youtube.com/embed/VIDEO_ID
+        elseif (preg_match('/youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/', $url, $matches)) {
+            $video_id = $matches[1];
+        }
+        // Padrão youtube.com/v/VIDEO_ID
+        elseif (preg_match('/youtube\.com\/v\/([a-zA-Z0-9_-]{11})/', $url, $matches)) {
+            $video_id = $matches[1];
+        }
+        // Padrão youtube.com/shorts/VIDEO_ID
+        elseif (preg_match('/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/', $url, $matches)) {
             $video_id = $matches[1];
         }
         

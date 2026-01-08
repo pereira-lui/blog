@@ -176,8 +176,10 @@
                 const videoId = this.dataset.videoId;
                 if (!videoId) return;
                 
-                // Set iframe src
-                iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+                // Set iframe src with all necessary parameters
+                // origin parameter helps with cross-origin issues
+                const origin = encodeURIComponent(window.location.origin);
+                iframe.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin=' + origin;
                 
                 // Show modal
                 modal.classList.add('active');
