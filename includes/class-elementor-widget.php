@@ -468,6 +468,14 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
         <style>
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> {
                 position: relative;
+                padding-left: <?php echo $image_width + $border_width + 40; ?>px;
+                min-height: <?php echo $image_height + 60; ?>px;
+            }
+            
+            @media (max-width: 1024px) {
+                #blog-pda-widget-<?php echo esc_attr($widget_id); ?> {
+                    padding-left: 0;
+                }
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-widget-title {
@@ -578,15 +586,17 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 const pageX = window.scrollX || document.documentElement.scrollLeft;
                 const pageY = window.scrollY || document.documentElement.scrollTop;
                 
-                // Position to the left of the list
-                const left = (listRect.left + pageX) - imageWidth - borderWidth - gap;
+                // Get widget position
+                const widgetRect = widget.getBoundingClientRect();
                 
-                // Center vertically with the item
-                const itemCenter = itemRect.top + pageY + (itemRect.height / 2);
+                // Position at the left edge of the widget (inside the padding area)
+                previewImg.style.left = '0px';
+                
+                // Center vertically with the hovered item, relative to widget
+                const itemCenter = itemRect.top - widgetRect.top + (itemRect.height / 2);
                 const top = itemCenter - (imageHeight / 2);
                 
-                previewImg.style.left = Math.max(10, left) + 'px';
-                previewImg.style.top = top + 'px';
+                previewImg.style.top = Math.max(0, top) + 'px';
             }
             
             function showImage(item) {
