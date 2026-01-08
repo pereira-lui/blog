@@ -180,14 +180,14 @@
                 iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
                 
                 // Show modal
-                modal.style.display = 'flex';
+                modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             });
         });
         
         // Close modal
         function closeModal() {
-            modal.style.display = 'none';
+            modal.classList.remove('active');
             iframe.src = '';
             document.body.style.overflow = '';
         }
@@ -202,7 +202,7 @@
         
         // Close with Escape key
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modal.style.display === 'flex') {
+            if (e.key === 'Escape' && modal.classList.contains('active')) {
                 closeModal();
             }
         });

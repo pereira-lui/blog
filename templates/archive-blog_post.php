@@ -335,7 +335,7 @@ $popular_query = new WP_Query($popular_args);
     <?php endif; ?>
 
     <!-- Modal de Vídeo -->
-    <div id="blog-video-modal" class="blog-video-modal" style="display: none;">
+    <div id="blog-video-modal" class="blog-video-modal">
         <div class="blog-video-modal-overlay"></div>
         <div class="blog-video-modal-content">
             <button class="blog-video-modal-close" aria-label="<?php _e('Fechar', 'blog-pda'); ?>">

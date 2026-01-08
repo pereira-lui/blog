@@ -875,9 +875,13 @@
     right: 0 !important;
     bottom: 0 !important;
     z-index: 99999 !important;
-    display: flex !important;
+    display: none !important;
     align-items: center !important;
     justify-content: center !important;
+}
+
+.blog-video-modal.active {
+    display: flex !important;
 }
 
 .blog-video-modal-overlay {
