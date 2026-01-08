@@ -59,6 +59,22 @@
 }
 
 /* ==========================================================================
+   Hide Theme Header on Blog Pages
+   ========================================================================== */
+body.single-blog_post #site-header,
+body.single-blog_post .site-header,
+body.single-blog_post header#site-header,
+body.post-type-archive-blog_post #site-header,
+body.post-type-archive-blog_post .site-header,
+body.post-type-archive-blog_post header#site-header,
+body.tax-blog_category #site-header,
+body.tax-blog_category .site-header,
+body.tax-blog_tag #site-header,
+body.tax-blog_tag .site-header {
+    display: none !important;
+}
+
+/* ==========================================================================
    Critical Overrides - Prevent theme conflicts
    ========================================================================== */
 .blog-pda-archive,
