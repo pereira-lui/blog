@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.5.0
+ * Version: 1.6.0
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.5.0');
+define('BLOG_PDA_VERSION', '1.6.0');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -95,6 +95,11 @@ final class Blog_PDA {
         // AJAX handler for load more
         add_action('wp_ajax_blog_pda_load_more', [$this, 'ajax_load_more']);
         add_action('wp_ajax_nopriv_blog_pda_load_more', [$this, 'ajax_load_more']);
+        
+        // AJAX handlers for CSV import
+        add_action('wp_ajax_blog_pda_upload_csv', [$this, 'ajax_upload_csv']);
+        add_action('wp_ajax_blog_pda_import_row', [$this, 'ajax_import_row']);
+        add_action('wp_ajax_blog_pda_cleanup_import', [$this, 'ajax_cleanup_import']);
         
         // Add featured post meta box
         add_action('add_meta_boxes', [$this, 'add_featured_meta_box']);
@@ -424,309 +429,539 @@ final class Blog_PDA {
     }
 
     /**
-     * CSV Import page content
+     * CSV Import page content with AJAX progress
      */
     public function csv_import_page_content() {
-        $message = '';
-        $message_type = '';
-        $imported_count = 0;
-        $errors = [];
-        
-        // Handle CSV upload
-        if (isset($_POST['blog_pda_import_csv']) && wp_verify_nonce($_POST['_wpnonce'], 'blog_pda_csv_import')) {
-            if (isset($_FILES['csv_file']) && $_FILES['csv_file']['error'] === UPLOAD_ERR_OK) {
-                $result = $this->process_csv_import($_FILES['csv_file']['tmp_name']);
-                $message = $result['message'];
-                $message_type = $result['success'] ? 'success' : 'error';
-                $imported_count = $result['imported'] ?? 0;
-                $errors = $result['errors'] ?? [];
-            } else {
-                $message = __('Erro ao fazer upload do arquivo CSV.', 'blog-pda');
-                $message_type = 'error';
-            }
-        }
         ?>
         <div class="wrap">
             <h1><?php _e('📥 Importar CSV do WP Import Export', 'blog-pda'); ?></h1>
             
-            <?php if ($message) : ?>
-            <div class="notice notice-<?php echo $message_type; ?> is-dismissible">
-                <p><?php echo $message; ?></p>
-                <?php if (!empty($errors)) : ?>
-                <details style="margin-top: 10px;">
-                    <summary><?php _e('Ver detalhes dos erros', 'blog-pda'); ?></summary>
-                    <ul style="margin-left: 20px;">
-                        <?php foreach (array_slice($errors, 0, 10) as $error) : ?>
-                        <li><?php echo esc_html($error); ?></li>
-                        <?php endforeach; ?>
-                        <?php if (count($errors) > 10) : ?>
-                        <li><em><?php printf(__('... e mais %d erros', 'blog-pda'), count($errors) - 10); ?></em></li>
-                        <?php endif; ?>
-                    </ul>
-                </details>
-                <?php endif; ?>
-            </div>
-            <?php endif; ?>
-            
-            <div class="card" style="max-width: 900px; padding: 20px;">
+            <!-- Upload Form -->
+            <div id="import-upload-section" class="card" style="max-width: 900px; padding: 20px;">
                 <h2><?php _e('Importador Direto de CSV', 'blog-pda'); ?></h2>
                 <p><?php _e('Este importador lê o arquivo CSV exportado pelo <strong>WP Import Export</strong> e importa diretamente para o Custom Post Type do blog com categorias e tags.', 'blog-pda'); ?></p>
                 
                 <div class="notice notice-info inline" style="margin: 15px 0;">
                     <p><strong><?php _e('Campos reconhecidos automaticamente:', 'blog-pda'); ?></strong></p>
-                    <ul style="list-style-type: disc; margin-left: 20px;">
-                        <li><code>Title</code> → Título do post</li>
-                        <li><code>Content</code> → Conteúdo</li>
-                        <li><code>Excerpt</code> → Resumo</li>
-                        <li><code>Slug</code> → URL do post</li>
-                        <li><code>Date</code> → Data de publicação</li>
-                        <li><code>Status</code> → Status (publish, draft)</li>
-                        <li><code>Categorias</code> → Categorias do Blog</li>
-                        <li><code>Tags</code> → Tags do Blog</li>
-                        <li><code>Image URL</code> → Imagem destacada</li>
-                    </ul>
+                    <code>Title</code>, <code>Content</code>, <code>Excerpt</code>, <code>Slug</code>, <code>Date</code>, <code>Status</code>, <code>Categorias</code>, <code>Tags</code>, <code>Image URL</code>
                 </div>
                 
-                <form method="post" enctype="multipart/form-data">
-                    <?php wp_nonce_field('blog_pda_csv_import'); ?>
-                    
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row">
-                                <label for="csv_file"><?php _e('Arquivo CSV', 'blog-pda'); ?></label>
-                            </th>
-                            <td>
-                                <input type="file" name="csv_file" id="csv_file" accept=".csv" required>
-                                <p class="description"><?php _e('Selecione o arquivo CSV exportado do WP Import Export.', 'blog-pda'); ?></p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <label for="update_existing"><?php _e('Posts existentes', 'blog-pda'); ?></label>
-                            </th>
-                            <td>
-                                <label>
-                                    <input type="checkbox" name="update_existing" id="update_existing" value="1">
-                                    <?php _e('Atualizar posts existentes (baseado no slug)', 'blog-pda'); ?>
-                                </label>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <label for="download_images"><?php _e('Imagens', 'blog-pda'); ?></label>
-                            </th>
-                            <td>
-                                <label>
-                                    <input type="checkbox" name="download_images" id="download_images" value="1" checked>
-                                    <?php _e('Baixar e importar imagens destacadas', 'blog-pda'); ?>
-                                </label>
-                            </td>
-                        </tr>
-                    </table>
-                    
-                    <p>
-                        <button type="submit" name="blog_pda_import_csv" class="button button-primary button-hero">
-                            <?php _e('📥 Importar CSV Agora', 'blog-pda'); ?>
-                        </button>
-                    </p>
-                </form>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="csv_file"><?php _e('Arquivo CSV', 'blog-pda'); ?></label>
+                        </th>
+                        <td>
+                            <input type="file" name="csv_file" id="csv_file" accept=".csv" required>
+                            <p class="description"><?php _e('Selecione o arquivo CSV exportado do WP Import Export.', 'blog-pda'); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="update_existing"><?php _e('Posts existentes', 'blog-pda'); ?></label>
+                        </th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="update_existing" id="update_existing" value="1">
+                                <?php _e('Atualizar posts existentes (baseado no slug)', 'blog-pda'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">
+                            <label for="download_images"><?php _e('Imagens', 'blog-pda'); ?></label>
+                        </th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="download_images" id="download_images" value="1" checked>
+                                <?php _e('Baixar e importar imagens destacadas', 'blog-pda'); ?>
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+                
+                <p>
+                    <button type="button" id="start-import-btn" class="button button-primary button-hero">
+                        <?php _e('📥 Iniciar Importação', 'blog-pda'); ?>
+                    </button>
+                </p>
             </div>
             
-            <div class="card" style="max-width: 900px; padding: 20px; margin-top: 20px;">
-                <h2><?php _e('Após a Importação', 'blog-pda'); ?></h2>
-                <ol>
-                    <li><?php _e('Verifique os posts importados', 'blog-pda'); ?></li>
-                    <li><?php _e('Salve os links permanentes para atualizar as URLs', 'blog-pda'); ?></li>
-                </ol>
-                <p>
-                    <a href="<?php echo admin_url('edit.php?post_type=blog_post'); ?>" class="button"><?php _e('Ver Posts', 'blog-pda'); ?></a>
-                    <a href="<?php echo admin_url('options-permalink.php'); ?>" class="button"><?php _e('Links Permanentes', 'blog-pda'); ?></a>
+            <!-- Progress Section (hidden initially) -->
+            <div id="import-progress-section" class="card" style="max-width: 900px; padding: 20px; display: none;">
+                <h2><?php _e('⏳ Importando...', 'blog-pda'); ?></h2>
+                
+                <div style="margin: 20px 0;">
+                    <div id="progress-bar-container" style="background: #e0e0e0; border-radius: 10px; height: 30px; overflow: hidden;">
+                        <div id="progress-bar" style="background: linear-gradient(90deg, #0073aa, #00a0d2); height: 100%; width: 0%; transition: width 0.3s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                            0%
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="progress-stats" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0;">
+                    <div style="background: #f0f0f1; padding: 15px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold; color: #0073aa;" id="stat-current">0</div>
+                        <div style="font-size: 12px; color: #666;"><?php _e('Processando', 'blog-pda'); ?></div>
+                    </div>
+                    <div style="background: #d4edda; padding: 15px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold; color: #28a745;" id="stat-imported">0</div>
+                        <div style="font-size: 12px; color: #666;"><?php _e('Importados', 'blog-pda'); ?></div>
+                    </div>
+                    <div style="background: #fff3cd; padding: 15px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold; color: #856404;" id="stat-skipped">0</div>
+                        <div style="font-size: 12px; color: #666;"><?php _e('Ignorados', 'blog-pda'); ?></div>
+                    </div>
+                    <div style="background: #f8d7da; padding: 15px; border-radius: 5px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: bold; color: #721c24;" id="stat-errors">0</div>
+                        <div style="font-size: 12px; color: #666;"><?php _e('Erros', 'blog-pda'); ?></div>
+                    </div>
+                </div>
+                
+                <div id="current-post-info" style="background: #f9f9f9; padding: 10px 15px; border-left: 4px solid #0073aa; margin: 10px 0;">
+                    <span id="current-post-title"><?php _e('Preparando...', 'blog-pda'); ?></span>
+                </div>
+                
+                <div id="import-log" style="background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 5px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; margin-top: 15px;">
+                    <div class="log-entry">[<?php echo date('H:i:s'); ?>] <?php _e('Aguardando início da importação...', 'blog-pda'); ?></div>
+                </div>
+            </div>
+            
+            <!-- Results Section (hidden initially) -->
+            <div id="import-results-section" class="card" style="max-width: 900px; padding: 20px; display: none;">
+                <h2 id="results-title"><?php _e('✅ Importação Concluída!', 'blog-pda'); ?></h2>
+                
+                <div id="results-summary" style="margin: 20px 0;"></div>
+                
+                <div id="results-errors" style="display: none; margin: 20px 0;">
+                    <h3><?php _e('⚠️ Erros encontrados:', 'blog-pda'); ?></h3>
+                    <ul id="errors-list" style="background: #fff3cd; padding: 15px 15px 15px 35px; border-radius: 5px; max-height: 200px; overflow-y: auto;"></ul>
+                </div>
+                
+                <p style="margin-top: 20px;">
+                    <a href="<?php echo admin_url('edit.php?post_type=blog_post'); ?>" class="button button-primary"><?php _e('Ver Posts Importados', 'blog-pda'); ?></a>
+                    <a href="<?php echo admin_url('options-permalink.php'); ?>" class="button"><?php _e('Atualizar Permalinks', 'blog-pda'); ?></a>
+                    <button type="button" id="import-again-btn" class="button"><?php _e('Importar Outro Arquivo', 'blog-pda'); ?></button>
                 </p>
             </div>
         </div>
+        
+        <script>
+        jQuery(document).ready(function($) {
+            var importData = {
+                file_id: '',
+                total: 0,
+                current: 0,
+                imported: 0,
+                skipped: 0,
+                errors: [],
+                update_existing: false,
+                download_images: true
+            };
+            
+            function addLog(message, type) {
+                var time = new Date().toLocaleTimeString();
+                var color = type === 'error' ? '#ff6b6b' : (type === 'success' ? '#51cf66' : '#d4d4d4');
+                $('#import-log').append('<div class="log-entry" style="color: ' + color + '">[' + time + '] ' + message + '</div>');
+                $('#import-log').scrollTop($('#import-log')[0].scrollHeight);
+            }
+            
+            function updateProgress() {
+                var percent = importData.total > 0 ? Math.round((importData.current / importData.total) * 100) : 0;
+                $('#progress-bar').css('width', percent + '%').text(percent + '%');
+                $('#stat-current').text(importData.current + ' / ' + importData.total);
+                $('#stat-imported').text(importData.imported);
+                $('#stat-skipped').text(importData.skipped);
+                $('#stat-errors').text(importData.errors.length);
+            }
+            
+            function processNextRow() {
+                if (importData.current >= importData.total) {
+                    finishImport();
+                    return;
+                }
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'blog_pda_import_row',
+                        file_id: importData.file_id,
+                        row_index: importData.current,
+                        update_existing: importData.update_existing ? 1 : 0,
+                        download_images: importData.download_images ? 1 : 0,
+                        nonce: '<?php echo wp_create_nonce('blog_pda_import'); ?>'
+                    },
+                    success: function(response) {
+                        importData.current++;
+                        
+                        if (response.success) {
+                            if (response.data.status === 'imported') {
+                                importData.imported++;
+                                addLog('✓ ' + response.data.title, 'success');
+                            } else if (response.data.status === 'skipped') {
+                                importData.skipped++;
+                                addLog('⊘ Ignorado: ' + response.data.title, '');
+                            } else if (response.data.status === 'error') {
+                                importData.errors.push(response.data.message);
+                                addLog('✗ ' + response.data.message, 'error');
+                            }
+                            $('#current-post-title').text(response.data.title || 'Processando...');
+                        } else {
+                            importData.errors.push(response.data || 'Erro desconhecido');
+                            addLog('✗ Erro: ' + (response.data || 'desconhecido'), 'error');
+                        }
+                        
+                        updateProgress();
+                        
+                        // Small delay to prevent server overload
+                        setTimeout(processNextRow, 100);
+                    },
+                    error: function(xhr, status, error) {
+                        importData.current++;
+                        importData.errors.push('Erro de conexão: ' + error);
+                        addLog('✗ Erro de conexão: ' + error, 'error');
+                        updateProgress();
+                        setTimeout(processNextRow, 500);
+                    }
+                });
+            }
+            
+            function finishImport() {
+                addLog('Importação finalizada!', 'success');
+                
+                // Cleanup
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'blog_pda_cleanup_import',
+                        file_id: importData.file_id,
+                        nonce: '<?php echo wp_create_nonce('blog_pda_import'); ?>'
+                    }
+                });
+                
+                // Show results
+                $('#import-progress-section').hide();
+                
+                var summaryHtml = '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">';
+                summaryHtml += '<div style="background: #d4edda; padding: 20px; border-radius: 5px; text-align: center;"><div style="font-size: 36px; font-weight: bold; color: #28a745;">' + importData.imported + '</div><div>Posts Importados</div></div>';
+                summaryHtml += '<div style="background: #fff3cd; padding: 20px; border-radius: 5px; text-align: center;"><div style="font-size: 36px; font-weight: bold; color: #856404;">' + importData.skipped + '</div><div>Ignorados</div></div>';
+                summaryHtml += '<div style="background: #f8d7da; padding: 20px; border-radius: 5px; text-align: center;"><div style="font-size: 36px; font-weight: bold; color: #721c24;">' + importData.errors.length + '</div><div>Erros</div></div>';
+                summaryHtml += '</div>';
+                
+                $('#results-summary').html(summaryHtml);
+                
+                if (importData.errors.length > 0) {
+                    var errorsList = '';
+                    importData.errors.slice(0, 20).forEach(function(err) {
+                        errorsList += '<li>' + err + '</li>';
+                    });
+                    if (importData.errors.length > 20) {
+                        errorsList += '<li><em>... e mais ' + (importData.errors.length - 20) + ' erros</em></li>';
+                    }
+                    $('#errors-list').html(errorsList);
+                    $('#results-errors').show();
+                }
+                
+                if (importData.imported > 0 && importData.errors.length === 0) {
+                    $('#results-title').html('✅ <?php _e('Importação Concluída com Sucesso!', 'blog-pda'); ?>');
+                } else if (importData.imported > 0) {
+                    $('#results-title').html('⚠️ <?php _e('Importação Concluída com Alguns Erros', 'blog-pda'); ?>');
+                } else {
+                    $('#results-title').html('❌ <?php _e('Importação Falhou', 'blog-pda'); ?>');
+                }
+                
+                $('#import-results-section').show();
+            }
+            
+            // Start import button
+            $('#start-import-btn').on('click', function() {
+                var fileInput = $('#csv_file')[0];
+                if (!fileInput.files || !fileInput.files[0]) {
+                    alert('<?php _e('Por favor, selecione um arquivo CSV.', 'blog-pda'); ?>');
+                    return;
+                }
+                
+                var formData = new FormData();
+                formData.append('action', 'blog_pda_upload_csv');
+                formData.append('csv_file', fileInput.files[0]);
+                formData.append('nonce', '<?php echo wp_create_nonce('blog_pda_import'); ?>');
+                
+                // Reset state
+                importData = {
+                    file_id: '',
+                    total: 0,
+                    current: 0,
+                    imported: 0,
+                    skipped: 0,
+                    errors: [],
+                    update_existing: $('#update_existing').is(':checked'),
+                    download_images: $('#download_images').is(':checked')
+                };
+                
+                // Show progress section
+                $('#import-upload-section').hide();
+                $('#import-progress-section').show();
+                $('#import-log').html('<div class="log-entry">[' + new Date().toLocaleTimeString() + '] <?php _e('Enviando arquivo CSV...', 'blog-pda'); ?></div>');
+                
+                // Upload file first
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            importData.file_id = response.data.file_id;
+                            importData.total = response.data.total_rows;
+                            
+                            addLog('Arquivo carregado: ' + response.data.total_rows + ' posts encontrados', 'success');
+                            updateProgress();
+                            
+                            // Start processing rows
+                            processNextRow();
+                        } else {
+                            addLog('Erro: ' + response.data, 'error');
+                            $('#current-post-title').text('Erro ao processar arquivo');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        addLog('Erro ao enviar arquivo: ' + error, 'error');
+                        $('#current-post-title').text('Erro ao enviar arquivo');
+                    }
+                });
+            });
+            
+            // Import again button
+            $('#import-again-btn').on('click', function() {
+                $('#import-results-section').hide();
+                $('#import-upload-section').show();
+                $('#csv_file').val('');
+            });
+        });
+        </script>
         <?php
     }
 
     /**
-     * Process CSV import
+     * AJAX: Upload CSV file
      */
-    private function process_csv_import($file_path) {
-        $imported = 0;
-        $skipped = 0;
-        $errors = [];
-        $update_existing = isset($_POST['update_existing']) && $_POST['update_existing'] === '1';
-        $download_images = isset($_POST['download_images']) && $_POST['download_images'] === '1';
+    public function ajax_upload_csv() {
+        check_ajax_referer('blog_pda_import', 'nonce');
         
-        // Read CSV file
-        $handle = fopen($file_path, 'r');
-        if ($handle === false) {
-            return [
-                'success' => false,
-                'message' => __('Não foi possível abrir o arquivo CSV.', 'blog-pda'),
-                'imported' => 0,
-                'errors' => []
-            ];
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Permissão negada.', 'blog-pda'));
         }
         
-        // Get header row
+        if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+            wp_send_json_error(__('Erro no upload do arquivo.', 'blog-pda'));
+        }
+        
+        // Read CSV and store in transient
+        $handle = fopen($_FILES['csv_file']['tmp_name'], 'r');
+        if ($handle === false) {
+            wp_send_json_error(__('Não foi possível abrir o arquivo.', 'blog-pda'));
+        }
+        
+        // Get headers
         $headers = fgetcsv($handle);
         if ($headers === false) {
             fclose($handle);
-            return [
-                'success' => false,
-                'message' => __('Arquivo CSV inválido ou vazio.', 'blog-pda'),
-                'imported' => 0,
-                'errors' => []
-            ];
+            wp_send_json_error(__('Arquivo CSV vazio ou inválido.', 'blog-pda'));
         }
         
-        // Map headers to indexes
+        // Read all rows
+        $rows = [];
+        while (($row = fgetcsv($handle)) !== false) {
+            $rows[] = $row;
+        }
+        fclose($handle);
+        
+        if (empty($rows)) {
+            wp_send_json_error(__('Nenhum dado encontrado no CSV.', 'blog-pda'));
+        }
+        
+        // Generate unique ID and store data
+        $file_id = 'blog_pda_import_' . wp_generate_password(12, false);
+        set_transient($file_id . '_headers', $headers, HOUR_IN_SECONDS);
+        set_transient($file_id . '_rows', $rows, HOUR_IN_SECONDS);
+        
+        wp_send_json_success([
+            'file_id' => $file_id,
+            'total_rows' => count($rows),
+            'headers' => $headers
+        ]);
+    }
+
+    /**
+     * AJAX: Import single row
+     */
+    public function ajax_import_row() {
+        check_ajax_referer('blog_pda_import', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(__('Permissão negada.', 'blog-pda'));
+        }
+        
+        $file_id = sanitize_text_field($_POST['file_id']);
+        $row_index = intval($_POST['row_index']);
+        $update_existing = isset($_POST['update_existing']) && $_POST['update_existing'] === '1';
+        $download_images = isset($_POST['download_images']) && $_POST['download_images'] === '1';
+        
+        // Get stored data
+        $headers = get_transient($file_id . '_headers');
+        $rows = get_transient($file_id . '_rows');
+        
+        if ($headers === false || $rows === false) {
+            wp_send_json_error(__('Dados expirados. Por favor, faça upload novamente.', 'blog-pda'));
+        }
+        
+        if (!isset($rows[$row_index])) {
+            wp_send_json_error(__('Linha não encontrada.', 'blog-pda'));
+        }
+        
+        $row = $rows[$row_index];
         $header_map = array_flip($headers);
         
-        // Required fields check
-        if (!isset($header_map['Title'])) {
-            fclose($handle);
-            return [
-                'success' => false,
-                'message' => __('Arquivo CSV não contém a coluna "Title" obrigatória.', 'blog-pda'),
-                'imported' => 0,
-                'errors' => []
-            ];
+        // Get values
+        $title = isset($header_map['Title']) && isset($row[$header_map['Title']]) ? trim($row[$header_map['Title']]) : '';
+        $content = isset($header_map['Content']) && isset($row[$header_map['Content']]) ? $row[$header_map['Content']] : '';
+        $excerpt = isset($header_map['Excerpt']) && isset($row[$header_map['Excerpt']]) ? $row[$header_map['Excerpt']] : '';
+        $slug = isset($header_map['Slug']) && isset($row[$header_map['Slug']]) ? sanitize_title($row[$header_map['Slug']]) : '';
+        $date = isset($header_map['Date']) && isset($row[$header_map['Date']]) ? $row[$header_map['Date']] : '';
+        $status = isset($header_map['Status']) && isset($row[$header_map['Status']]) ? strtolower(trim($row[$header_map['Status']])) : 'publish';
+        $categories = isset($header_map['Categorias']) && isset($row[$header_map['Categorias']]) ? $row[$header_map['Categorias']] : '';
+        $tags = isset($header_map['Tags']) && isset($row[$header_map['Tags']]) ? $row[$header_map['Tags']] : '';
+        $image_url = isset($header_map['Image URL']) && isset($row[$header_map['Image URL']]) ? trim($row[$header_map['Image URL']]) : '';
+        
+        // Skip empty titles
+        if (empty($title)) {
+            wp_send_json_success([
+                'status' => 'skipped',
+                'title' => __('Título vazio', 'blog-pda'),
+                'message' => __('Título vazio, linha ignorada.', 'blog-pda')
+            ]);
         }
         
-        // Process each row
-        $row_number = 1;
-        while (($row = fgetcsv($handle)) !== false) {
-            $row_number++;
-            
-            // Get values from row
-            $title = isset($header_map['Title']) && isset($row[$header_map['Title']]) ? trim($row[$header_map['Title']]) : '';
-            $content = isset($header_map['Content']) && isset($row[$header_map['Content']]) ? $row[$header_map['Content']] : '';
-            $excerpt = isset($header_map['Excerpt']) && isset($row[$header_map['Excerpt']]) ? $row[$header_map['Excerpt']] : '';
-            $slug = isset($header_map['Slug']) && isset($row[$header_map['Slug']]) ? sanitize_title($row[$header_map['Slug']]) : '';
-            $date = isset($header_map['Date']) && isset($row[$header_map['Date']]) ? $row[$header_map['Date']] : '';
-            $status = isset($header_map['Status']) && isset($row[$header_map['Status']]) ? strtolower(trim($row[$header_map['Status']])) : 'publish';
-            $categories = isset($header_map['Categorias']) && isset($row[$header_map['Categorias']]) ? $row[$header_map['Categorias']] : '';
-            $tags = isset($header_map['Tags']) && isset($row[$header_map['Tags']]) ? $row[$header_map['Tags']] : '';
-            $image_url = isset($header_map['Image URL']) && isset($row[$header_map['Image URL']]) ? trim($row[$header_map['Image URL']]) : '';
-            
-            // Skip empty titles
-            if (empty($title)) {
-                $errors[] = sprintf(__('Linha %d: Título vazio, pulando.', 'blog-pda'), $row_number);
-                $skipped++;
-                continue;
-            }
-            
-            // Check if post exists by slug
-            $existing_post = null;
-            if (!empty($slug)) {
-                $existing_post = get_page_by_path($slug, OBJECT, 'blog_post');
-            }
-            
-            if ($existing_post && !$update_existing) {
-                $skipped++;
-                continue;
-            }
-            
-            // Prepare post data
-            $post_data = [
-                'post_title' => $title,
-                'post_content' => $content,
-                'post_excerpt' => $excerpt,
-                'post_name' => $slug,
-                'post_status' => in_array($status, ['publish', 'draft', 'pending', 'private']) ? $status : 'publish',
-                'post_type' => 'blog_post',
-                'post_date' => !empty($date) ? $date : current_time('mysql'),
-            ];
-            
-            // Update or insert
-            if ($existing_post && $update_existing) {
-                $post_data['ID'] = $existing_post->ID;
-                $post_id = wp_update_post($post_data, true);
-            } else {
-                $post_id = wp_insert_post($post_data, true);
-            }
-            
-            if (is_wp_error($post_id)) {
-                $errors[] = sprintf(__('Linha %d: Erro ao criar post "%s" - %s', 'blog-pda'), $row_number, $title, $post_id->get_error_message());
-                continue;
-            }
-            
-            // Process categories
-            if (!empty($categories)) {
-                $cat_names = array_map('trim', explode(',', $categories));
-                $cat_ids = [];
-                
-                foreach ($cat_names as $cat_name) {
-                    if (empty($cat_name)) continue;
-                    
-                    // Check if category exists
-                    $term = get_term_by('name', $cat_name, 'blog_category');
-                    if (!$term) {
-                        // Create category
-                        $new_term = wp_insert_term($cat_name, 'blog_category');
-                        if (!is_wp_error($new_term)) {
-                            $cat_ids[] = $new_term['term_id'];
-                        }
-                    } else {
-                        $cat_ids[] = $term->term_id;
-                    }
-                }
-                
-                if (!empty($cat_ids)) {
-                    wp_set_object_terms($post_id, $cat_ids, 'blog_category');
-                }
-            }
-            
-            // Process tags
-            if (!empty($tags)) {
-                $tag_names = array_map('trim', explode(',', $tags));
-                $tag_ids = [];
-                
-                foreach ($tag_names as $tag_name) {
-                    if (empty($tag_name)) continue;
-                    
-                    // Check if tag exists
-                    $term = get_term_by('name', $tag_name, 'blog_tag');
-                    if (!$term) {
-                        // Create tag
-                        $new_term = wp_insert_term($tag_name, 'blog_tag');
-                        if (!is_wp_error($new_term)) {
-                            $tag_ids[] = $new_term['term_id'];
-                        }
-                    } else {
-                        $tag_ids[] = $term->term_id;
-                    }
-                }
-                
-                if (!empty($tag_ids)) {
-                    wp_set_object_terms($post_id, $tag_ids, 'blog_tag');
-                }
-            }
-            
-            // Process featured image
-            if ($download_images && !empty($image_url)) {
-                $this->set_featured_image_from_url($post_id, $image_url);
-            }
-            
-            $imported++;
+        // Check if post exists
+        $existing_post = null;
+        if (!empty($slug)) {
+            $existing_post = get_page_by_path($slug, OBJECT, 'blog_post');
         }
         
-        fclose($handle);
+        if ($existing_post && !$update_existing) {
+            wp_send_json_success([
+                'status' => 'skipped',
+                'title' => $title,
+                'message' => sprintf(__('Post "%s" já existe.', 'blog-pda'), $title)
+            ]);
+        }
+        
+        // Prepare post data
+        $post_data = [
+            'post_title' => $title,
+            'post_content' => $content,
+            'post_excerpt' => $excerpt,
+            'post_name' => $slug,
+            'post_status' => in_array($status, ['publish', 'draft', 'pending', 'private']) ? $status : 'publish',
+            'post_type' => 'blog_post',
+            'post_date' => !empty($date) ? $date : current_time('mysql'),
+        ];
+        
+        // Update or insert
+        if ($existing_post && $update_existing) {
+            $post_data['ID'] = $existing_post->ID;
+            $post_id = wp_update_post($post_data, true);
+        } else {
+            $post_id = wp_insert_post($post_data, true);
+        }
+        
+        if (is_wp_error($post_id)) {
+            wp_send_json_success([
+                'status' => 'error',
+                'title' => $title,
+                'message' => sprintf(__('Erro ao criar "%s": %s', 'blog-pda'), $title, $post_id->get_error_message())
+            ]);
+        }
+        
+        // Process categories
+        if (!empty($categories)) {
+            $cat_names = array_map('trim', explode(',', $categories));
+            $cat_ids = [];
+            
+            foreach ($cat_names as $cat_name) {
+                if (empty($cat_name)) continue;
+                
+                $term = get_term_by('name', $cat_name, 'blog_category');
+                if (!$term) {
+                    $new_term = wp_insert_term($cat_name, 'blog_category');
+                    if (!is_wp_error($new_term)) {
+                        $cat_ids[] = $new_term['term_id'];
+                    }
+                } else {
+                    $cat_ids[] = $term->term_id;
+                }
+            }
+            
+            if (!empty($cat_ids)) {
+                wp_set_object_terms($post_id, $cat_ids, 'blog_category');
+            }
+        }
+        
+        // Process tags
+        if (!empty($tags)) {
+            $tag_names = array_map('trim', explode(',', $tags));
+            $tag_ids = [];
+            
+            foreach ($tag_names as $tag_name) {
+                if (empty($tag_name)) continue;
+                
+                $term = get_term_by('name', $tag_name, 'blog_tag');
+                if (!$term) {
+                    $new_term = wp_insert_term($tag_name, 'blog_tag');
+                    if (!is_wp_error($new_term)) {
+                        $tag_ids[] = $new_term['term_id'];
+                    }
+                } else {
+                    $tag_ids[] = $term->term_id;
+                }
+            }
+            
+            if (!empty($tag_ids)) {
+                wp_set_object_terms($post_id, $tag_ids, 'blog_tag');
+            }
+        }
+        
+        // Process featured image
+        if ($download_images && !empty($image_url)) {
+            $this->set_featured_image_from_url($post_id, $image_url);
+        }
+        
+        wp_send_json_success([
+            'status' => 'imported',
+            'title' => $title,
+            'post_id' => $post_id,
+            'categories' => $categories,
+            'tags' => $tags
+        ]);
+    }
+
+    /**
+     * AJAX: Cleanup import data
+     */
+    public function ajax_cleanup_import() {
+        check_ajax_referer('blog_pda_import', 'nonce');
+        
+        $file_id = sanitize_text_field($_POST['file_id']);
+        delete_transient($file_id . '_headers');
+        delete_transient($file_id . '_rows');
         
         // Flush rewrite rules
         flush_rewrite_rules();
         
-        return [
-            'success' => true,
-            'message' => sprintf(
-                __('Importação concluída! %d posts importados, %d ignorados.', 'blog-pda'),
-                $imported,
-                $skipped
-            ),
-            'imported' => $imported,
-            'errors' => $errors
-        ];
+        wp_send_json_success();
     }
 
     /**
