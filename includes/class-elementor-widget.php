@@ -498,8 +498,8 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-post-item:hover a,
-            #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-post-item.is-active a {
-                color: var(--pda-accent-color) !important;
+            #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-post-item.blog-pda-active a {
+                color: var(--blog-pda-accent) !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-widget-button-wrap {
@@ -525,14 +525,14 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 width: <?php echo $image_width; ?>px;
                 height: <?php echo $image_height; ?>px;
                 object-fit: cover;
-                border-left: <?php echo $border_width; ?>px solid var(--pda-accent-color, #00AC50);
+                border-left: <?php echo $border_width; ?>px solid var(--blog-pda-accent, #00AC50);
                 opacity: 0;
                 transition: opacity 0.18s ease, transform 0.20s ease;
                 pointer-events: none;
                 z-index: 9999;
             }
             
-            #blog-pda-preview-<?php echo esc_attr($widget_id); ?>.is-active {
+            #blog-pda-preview-<?php echo esc_attr($widget_id); ?>.blog-pda-active {
                 opacity: 1;
             }
             
@@ -597,32 +597,32 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 
                 if (!imageUrl) return;
                 
-                previewImg.style.setProperty('--pda-accent-color', color);
-                item.style.setProperty('--pda-accent-color', color);
+                previewImg.style.setProperty('--blog-pda-accent', color);
+                item.style.setProperty('--blog-pda-accent', color);
                 
                 if (previewImg.src !== imageUrl) {
                     // Carrega a imagem e mostra quando pronta
-                    previewImg.classList.remove('is-active');
+                    previewImg.classList.remove('blog-pda-active');
                     const loader = new Image();
                     loader.onload = function() {
                         previewImg.src = imageUrl;
                         positionImage(item);
-                        previewImg.classList.add('is-active');
+                        previewImg.classList.add('blog-pda-active');
                     };
                     loader.src = imageUrl;
                 } else {
                     positionImage(item);
-                    previewImg.classList.add('is-active');
+                    previewImg.classList.add('blog-pda-active');
                 }
                 
-                item.classList.add('is-active');
+                item.classList.add('blog-pda-active');
                 activeItem = item;
             }
             
             function hideImage() {
-                previewImg.classList.remove('is-active');
+                previewImg.classList.remove('blog-pda-active');
                 if (activeItem) {
-                    activeItem.classList.remove('is-active');
+                    activeItem.classList.remove('blog-pda-active');
                     activeItem = null;
                 }
             }
