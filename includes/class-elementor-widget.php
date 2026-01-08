@@ -470,6 +470,7 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 position: relative;
                 padding-left: <?php echo $image_width + $border_width + 40; ?>px;
                 min-height: <?php echo $image_height + 60; ?>px;
+                font-family: "Neurial Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
             
             @media (max-width: 1024px) {
