@@ -34,24 +34,58 @@
 /* ==========================================================================
    Critical Overrides - Prevent theme conflicts
    ========================================================================== */
+.blog-pda-archive,
+.blog-pda-single {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
 .blog-pda-archive img,
 .blog-pda-single img {
     max-width: 100% !important;
     height: auto !important;
 }
 
-.blog-pda-archive .blog-hero-grid,
-.blog-pda-archive .blog-posts-grid,
-.blog-pda-archive .blog-related-posts-grid,
-.blog-pda-archive .blog-podcasts-grid,
-.blog-pda-single .blog-related-posts-grid {
+/* Force grid layouts */
+.blog-pda-archive .blog-hero-grid {
     display: grid !important;
+    grid-template-columns: 1.6fr 1fr !important;
+    gap: 24px !important;
 }
 
-.blog-pda-archive .blog-hero-sidebar,
+.blog-pda-archive .blog-posts-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 30px !important;
+}
+
+.blog-pda-archive .blog-related-posts-grid,
+.blog-pda-single .blog-related-posts-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 24px !important;
+}
+
+.blog-pda-archive .blog-podcasts-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 20px !important;
+}
+
+/* Force flex layouts */
+.blog-pda-archive .blog-hero-sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+}
+
 .blog-pda-archive .blog-popular-track,
 .blog-pda-archive .blog-videos-track {
     display: flex !important;
+    flex-direction: row !important;
+    gap: 20px !important;
 }
 
 .blog-pda-archive a,
@@ -95,10 +129,20 @@
 
 .blog-pda-archive .blog-container,
 .blog-pda-single .blog-container {
-    max-width: var(--blog-container-width) !important;
+    max-width: 1200px !important;
     margin: 0 auto !important;
     padding: 0 24px !important;
     width: 100% !important;
+}
+
+/* Force main to be full width */
+#blog-main.blog-pda-archive,
+#blog-main.blog-pda-single {
+    width: 100% !important;
+    max-width: 100% !important;
+    float: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
 /* ==========================================================================
