@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 1.8.4
+ * Version: 1.9.0
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '1.8.4');
+define('BLOG_PDA_VERSION', '1.9.0');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -115,6 +115,10 @@ final class Blog_PDA {
         
         // Hide Rank Math SEO from Blog post type (optional)
         add_filter('rank_math/sitemap/post_type/blog_post', '__return_true');
+        
+        // Register Elementor Widget
+        add_action('elementor/widgets/register', [$this, 'register_elementor_widgets']);
+        add_action('elementor/elements/categories_registered', [$this, 'register_elementor_category']);
     }
 
     /**
@@ -2448,6 +2452,30 @@ final class Blog_PDA {
         );
         
         return $content;
+    }
+
+    /**
+     * Register Elementor Widget Category
+     */
+    public function register_elementor_category($elements_manager) {
+        $elements_manager->add_category(
+            'blog-pda',
+            [
+                'title' => __('Blog PDA', 'blog-pda'),
+                'icon' => 'fa fa-newspaper',
+            ]
+        );
+    }
+
+    /**
+     * Register Elementor Widgets
+     */
+    public function register_elementor_widgets($widgets_manager) {
+        // Include widget file
+        require_once BLOG_PDA_PLUGIN_DIR . 'includes/class-elementor-widget.php';
+        
+        // Register widget
+        $widgets_manager->register(new \Blog_PDA_Posts_Widget());
     }
 }
 
