@@ -468,15 +468,7 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
         <style>
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> {
                 position: relative;
-                padding-left: <?php echo $image_width + $border_width + 40; ?>px;
-                min-height: <?php echo $image_height + 60; ?>px;
                 font-family: "Neurial Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            }
-            
-            @media (max-width: 1024px) {
-                #blog-pda-widget-<?php echo esc_attr($widget_id); ?> {
-                    padding-left: 0;
-                }
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-widget-title {
@@ -530,15 +522,15 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             }
             
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?> {
-                position: absolute;
+                position: fixed;
                 width: <?php echo $image_width; ?>px;
                 height: <?php echo $image_height; ?>px;
                 object-fit: cover;
                 border-left: <?php echo $border_width; ?>px solid var(--blog-pda-accent, #00AC50);
                 opacity: 0;
-                transition: opacity 0.18s ease, transform 0.20s ease;
+                transition: opacity 0.15s ease;
                 pointer-events: none;
-                z-index: 9999;
+                z-index: 99999;
             }
             
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?>.blog-pda-active {
@@ -562,10 +554,12 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             
             const imageWidth = <?php echo $image_width; ?>;
             const imageHeight = <?php echo $image_height; ?>;
-            const borderWidth = <?php echo $border_width; ?>;
-            const gap = 24;
+            const offsetX = 20;
+            const offsetY = 20;
             
             let activeItem = null;
+            let mouseX = 0;
+            let mouseY = 0;
             
             // Pré-carregar todas as imagens no cache do navegador
             function warmCache() {
@@ -579,28 +573,32 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             }
             warmCache();
             
-            function positionImage(item) {
-                if (!item) return;
+            function positionImage(e) {
+                if (e) {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                }
                 
-                const listRect = postsList.getBoundingClientRect();
-                const itemRect = item.getBoundingClientRect();
-                const pageX = window.scrollX || document.documentElement.scrollLeft;
-                const pageY = window.scrollY || document.documentElement.scrollTop;
+                // Calcular posição - à esquerda do cursor
+                let left = mouseX - imageWidth - offsetX;
+                let top = mouseY - (imageHeight / 2);
                 
-                // Get widget position
-                const widgetRect = widget.getBoundingClientRect();
+                // Se não couber à esquerda, mostra à direita
+                if (left < 10) {
+                    left = mouseX + offsetX;
+                }
                 
-                // Position at the left edge of the widget (inside the padding area)
-                previewImg.style.left = '0px';
+                // Manter dentro da tela verticalmente
+                if (top < 10) top = 10;
+                if (top + imageHeight > window.innerHeight - 10) {
+                    top = window.innerHeight - imageHeight - 10;
+                }
                 
-                // Center vertically with the hovered item, relative to widget
-                const itemCenter = itemRect.top - widgetRect.top + (itemRect.height / 2);
-                const top = itemCenter - (imageHeight / 2);
-                
-                previewImg.style.top = Math.max(0, top) + 'px';
+                previewImg.style.left = left + 'px';
+                previewImg.style.top = top + 'px';
             }
             
-            function showImage(item) {
+            function showImage(item, e) {
                 if (!item) return;
                 
                 const imageUrl = item.dataset.image;
@@ -612,17 +610,16 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 item.style.setProperty('--blog-pda-accent', color);
                 
                 if (previewImg.src !== imageUrl) {
-                    // Carrega a imagem e mostra quando pronta
                     previewImg.classList.remove('blog-pda-active');
                     const loader = new Image();
                     loader.onload = function() {
                         previewImg.src = imageUrl;
-                        positionImage(item);
+                        positionImage(e);
                         previewImg.classList.add('blog-pda-active');
                     };
                     loader.src = imageUrl;
                 } else {
-                    positionImage(item);
+                    positionImage(e);
                     previewImg.classList.add('blog-pda-active');
                 }
                 
@@ -640,21 +637,18 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             
             // Event listeners
             postsList.querySelectorAll('.blog-pda-post-item').forEach(function(item) {
-                item.addEventListener('mouseenter', function() {
-                    showImage(this);
+                item.addEventListener('mouseenter', function(e) {
+                    showImage(this, e);
+                });
+                
+                item.addEventListener('mousemove', function(e) {
+                    if (activeItem === this) {
+                        positionImage(e);
+                    }
                 });
             });
             
             postsList.addEventListener('mouseleave', hideImage);
-            
-            // Update position on scroll
-            window.addEventListener('scroll', function() {
-                if (activeItem) positionImage(activeItem);
-            }, { passive: true });
-            
-            window.addEventListener('resize', function() {
-                if (activeItem) positionImage(activeItem);
-            });
         })();
         </script>
         <?php
