@@ -476,7 +476,7 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 font-weight: 700;
                 margin: 0 0 20px;
                 padding-bottom: 15px;
-                border-bottom: 3px solid #EF3340;
+                border-bottom: 1px solid #0000004f;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-posts-list {
@@ -493,7 +493,8 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-post-item a {
                 text-decoration: none;
                 color: inherit;
-                font-size: 16px;
+                font-weight: 600;
+                font-size: 18px;
                 line-height: 1.5;
                 transition: color 0.18s ease;
             }
