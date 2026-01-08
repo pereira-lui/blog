@@ -521,13 +521,13 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             }
             
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?> {
-                position: fixed;
+                position: absolute;
                 width: <?php echo $image_width; ?>px;
                 height: <?php echo $image_height; ?>px;
                 object-fit: cover;
                 border-left: <?php echo $border_width; ?>px solid var(--pda-accent-color, #00AC50);
                 opacity: 0;
-                transition: opacity 0.18s ease;
+                transition: opacity 0.18s ease, transform 0.20s ease;
                 pointer-events: none;
                 z-index: 9999;
             }
@@ -553,21 +553,36 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             
             const imageWidth = <?php echo $image_width; ?>;
             const imageHeight = <?php echo $image_height; ?>;
+            const borderWidth = <?php echo $border_width; ?>;
             const gap = 24;
             
             let activeItem = null;
+            
+            // Pré-carregar todas as imagens no cache do navegador
+            function warmCache() {
+                postsList.querySelectorAll('.blog-pda-post-item').forEach(function(item) {
+                    const url = item.dataset.image;
+                    if (url) {
+                        const img = new Image();
+                        img.src = url;
+                    }
+                });
+            }
+            warmCache();
             
             function positionImage(item) {
                 if (!item) return;
                 
                 const listRect = postsList.getBoundingClientRect();
                 const itemRect = item.getBoundingClientRect();
+                const pageX = window.scrollX || document.documentElement.scrollLeft;
+                const pageY = window.scrollY || document.documentElement.scrollTop;
                 
                 // Position to the left of the list
-                const left = listRect.left - imageWidth - gap;
+                const left = (listRect.left + pageX) - imageWidth - borderWidth - gap;
                 
                 // Center vertically with the item
-                const itemCenter = itemRect.top + (itemRect.height / 2);
+                const itemCenter = itemRect.top + pageY + (itemRect.height / 2);
                 const top = itemCenter - (imageHeight / 2);
                 
                 previewImg.style.left = Math.max(10, left) + 'px';
@@ -586,11 +601,20 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 item.style.setProperty('--pda-accent-color', color);
                 
                 if (previewImg.src !== imageUrl) {
-                    previewImg.src = imageUrl;
+                    // Carrega a imagem e mostra quando pronta
+                    previewImg.classList.remove('is-active');
+                    const loader = new Image();
+                    loader.onload = function() {
+                        previewImg.src = imageUrl;
+                        positionImage(item);
+                        previewImg.classList.add('is-active');
+                    };
+                    loader.src = imageUrl;
+                } else {
+                    positionImage(item);
+                    previewImg.classList.add('is-active');
                 }
                 
-                positionImage(item);
-                previewImg.classList.add('is-active');
                 item.classList.add('is-active');
                 activeItem = item;
             }
