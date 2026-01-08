@@ -606,6 +606,12 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 
                 if (!imageUrl) return;
                 
+                // Limpar item anterior se existir
+                if (activeItem && activeItem !== item) {
+                    activeItem.classList.remove('blog-pda-active');
+                    activeItem.style.removeProperty('--blog-pda-accent');
+                }
+                
                 previewImg.style.setProperty('--blog-pda-accent', color);
                 item.style.setProperty('--blog-pda-accent', color);
                 
