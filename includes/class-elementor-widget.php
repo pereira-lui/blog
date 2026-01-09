@@ -427,48 +427,73 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
         ?>
         <div class="blog-pda-widget" id="blog-pda-widget-<?php echo esc_attr($widget_id); ?>">
             
-            <?php if (!empty($settings['title'])) : ?>
-            <h2 class="blog-pda-widget-title"><?php echo esc_html($settings['title']); ?></h2>
-            <?php endif; ?>
+            <!-- Área fixa da imagem (esquerda) -->
+            <div class="blog-pda-image-area" id="blog-pda-image-area-<?php echo esc_attr($widget_id); ?>">
+                <img class="blog-pda-preview-img" id="blog-pda-preview-<?php echo esc_attr($widget_id); ?>" src="" alt="">
+            </div>
             
-            <div class="blog-pda-posts-list">
-                <?php 
-                $index = 0;
-                if ($query->have_posts()) : 
-                    while ($query->have_posts()) : $query->the_post();
-                        $color_index = $index % 5;
-                        $accent_color = $colors[$color_index];
-                        $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
-                ?>
-                <div class="blog-pda-post-item" 
-                     data-color="<?php echo esc_attr($accent_color); ?>"
-                     data-image="<?php echo esc_url($thumbnail); ?>">
-                    <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+            <!-- Área do conteúdo (direita) -->
+            <div class="blog-pda-content-area">
+                <?php if (!empty($settings['title'])) : ?>
+                <h2 class="blog-pda-widget-title"><?php echo esc_html($settings['title']); ?></h2>
+                <?php endif; ?>
+                
+                <div class="blog-pda-posts-list">
+                    <?php 
+                    $index = 0;
+                    if ($query->have_posts()) : 
+                        while ($query->have_posts()) : $query->the_post();
+                            $color_index = $index % 5;
+                            $accent_color = $colors[$color_index];
+                            $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
+                    ?>
+                    <div class="blog-pda-post-item" 
+                         data-color="<?php echo esc_attr($accent_color); ?>"
+                         data-image="<?php echo esc_url($thumbnail); ?>">
+                        <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+                    </div>
+                    <?php 
+                            $index++;
+                        endwhile;
+                        wp_reset_postdata();
+                    endif;
+                    ?>
                 </div>
-                <?php 
-                        $index++;
-                    endwhile;
-                    wp_reset_postdata();
-                endif;
-                ?>
+                
+                <?php if ($settings['show_button'] === 'yes') : ?>
+                <div class="blog-pda-widget-button-wrap">
+                    <a href="<?php echo esc_url(home_url('/blog')); ?>" class="blog-pda-widget-button">
+                        <?php echo esc_html($settings['button_text']); ?>
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
-            
-            <?php if ($settings['show_button'] === 'yes') : ?>
-            <div class="blog-pda-widget-button-wrap">
-                <a href="<?php echo esc_url(home_url('/blog')); ?>" class="blog-pda-widget-button">
-                    <?php echo esc_html($settings['button_text']); ?>
-                </a>
-            </div>
-            <?php endif; ?>
-            
-            <!-- Floating Image -->
-            <img class="blog-pda-preview-img" id="blog-pda-preview-<?php echo esc_attr($widget_id); ?>" src="" alt="">
         </div>
         
         <style>
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> {
                 position: relative !important;
                 font-family: "Neurial Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 40px !important;
+            }
+            
+            /* Área fixa da imagem (esquerda) */
+            #blog-pda-image-area-<?php echo esc_attr($widget_id); ?> {
+                flex: 0 0 <?php echo $image_width; ?>px !important;
+                width: <?php echo $image_width; ?>px !important;
+                min-height: <?php echo $image_height; ?>px !important;
+                position: relative !important;
+                display: flex !important;
+                align-items: flex-start !important;
+                justify-content: center !important;
+            }
+            
+            /* Área do conteúdo (direita) */
+            #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-content-area {
+                flex: 1 !important;
+                min-width: 0 !important;
             }
             
             #blog-pda-widget-<?php echo esc_attr($widget_id); ?> .blog-pda-widget-title {
@@ -522,16 +547,17 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 opacity: 0.9 !important;
             }
             
+            /* Imagem de preview - posicionada na área fixa */
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?> {
-                position: fixed !important;
-                width: <?php echo $image_width; ?>px !important;
+                position: sticky !important;
+                top: 100px !important;
+                width: 100% !important;
                 height: <?php echo $image_height; ?>px !important;
                 object-fit: cover !important;
                 border-left: <?php echo $border_width; ?>px solid var(--blog-pda-accent, #00AC50) !important;
                 opacity: 0 !important;
-                transition: opacity 0.15s ease !important;
+                transition: opacity 0.25s ease !important;
                 pointer-events: none !important;
-                z-index: 99999 !important;
             }
             
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?>.blog-pda-active {
@@ -539,7 +565,11 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             }
             
             @media (max-width: 1024px) {
-                #blog-pda-preview-<?php echo esc_attr($widget_id); ?> {
+                #blog-pda-widget-<?php echo esc_attr($widget_id); ?> {
+                    flex-direction: column !important;
+                }
+                
+                #blog-pda-image-area-<?php echo esc_attr($widget_id); ?> {
                     display: none !important;
                 }
             }
@@ -553,14 +583,7 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             
             if (!widget || !previewImg || !postsList) return;
             
-            const imageWidth = <?php echo $image_width; ?>;
-            const imageHeight = <?php echo $image_height; ?>;
-            const offsetX = 20;
-            const offsetY = 20;
-            
             let activeItem = null;
-            let mouseX = 0;
-            let mouseY = 0;
             
             // Pré-carregar todas as imagens no cache do navegador
             function warmCache() {
@@ -574,32 +597,7 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             }
             warmCache();
             
-            function positionImage(e) {
-                if (e) {
-                    mouseX = e.clientX;
-                    mouseY = e.clientY;
-                }
-                
-                // Calcular posição - à esquerda do cursor
-                let left = mouseX - imageWidth - offsetX;
-                let top = mouseY - (imageHeight / 2);
-                
-                // Se não couber à esquerda, mostra à direita
-                if (left < 10) {
-                    left = mouseX + offsetX;
-                }
-                
-                // Manter dentro da tela verticalmente
-                if (top < 10) top = 10;
-                if (top + imageHeight > window.innerHeight - 10) {
-                    top = window.innerHeight - imageHeight - 10;
-                }
-                
-                previewImg.style.left = left + 'px';
-                previewImg.style.top = top + 'px';
-            }
-            
-            function showImage(item, e) {
+            function showImage(item) {
                 if (!item) return;
                 
                 const imageUrl = item.dataset.image;
@@ -621,12 +619,10 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                     const loader = new Image();
                     loader.onload = function() {
                         previewImg.src = imageUrl;
-                        positionImage(e);
                         previewImg.classList.add('blog-pda-active');
                     };
                     loader.src = imageUrl;
                 } else {
-                    positionImage(e);
                     previewImg.classList.add('blog-pda-active');
                 }
                 
@@ -646,13 +642,7 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             // Event listeners
             postsList.querySelectorAll('.blog-pda-post-item').forEach(function(item) {
                 item.addEventListener('mouseenter', function(e) {
-                    showImage(this, e);
-                });
-                
-                item.addEventListener('mousemove', function(e) {
-                    if (activeItem === this) {
-                        positionImage(e);
-                    }
+                    showImage(this);
                 });
             });
             
