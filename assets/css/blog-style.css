@@ -444,6 +444,7 @@ body.tax-blog_tag .site-header {
     -ms-overflow-style: none !important;
     padding: 10px 0 !important;
     padding-right: 60px !important;
+    scroll-snap-type: x mandatory !important;
 }
 
 .blog-popular-track::-webkit-scrollbar {
@@ -495,6 +496,7 @@ body.tax-blog_tag .site-header {
 .blog-popular-item {
     flex: 0 0 auto !important;
     min-width: 280px !important;
+    scroll-snap-align: start !important;
 }
 
 .blog-popular-link {
@@ -879,6 +881,9 @@ body.tax-blog_tag .site-header {
     -ms-overflow-style: none !important;
     padding: 10px 0 !important;
     padding-right: 60px !important;
+    scroll-snap-type: x mandatory !important;
+}
+    padding-right: 60px !important;
 }
 
 .blog-videos-track::-webkit-scrollbar,
@@ -932,7 +937,7 @@ body.tax-blog_tag .site-header {
 
 .blog-video-card,
 .blog-pda-archive .blog-video-card {
-    flex: 0 0 calc((100% - 60px) / 3.3) !important;
+    flex: 0 0 auto !important;
     min-width: 280px !important;
     position: relative !important;
     border-radius: 16px !important;
@@ -940,6 +945,7 @@ body.tax-blog_tag .site-header {
     background: #F5F5F5 !important;
     cursor: pointer !important;
     transition: all 0.3s ease !important;
+    scroll-snap-align: start !important;
 }
 
 .blog-video-card:hover {
