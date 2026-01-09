@@ -630,6 +630,16 @@ body.tax-blog_tag .site-header {
     margin-bottom: 40px !important;
 }
 
+/* Espaçador invisível para offset da coluna esquerda */
+.blog-pda-archive .blog-posts-grid.blog-masonry-grid::before {
+    content: '' !important;
+    display: block !important;
+    height: 100px !important;
+    width: 100% !important;
+    break-inside: avoid !important;
+    break-after: avoid !important;
+}
+
 /* Masonry Card */
 .blog-pda-archive .blog-masonry-card {
     position: relative !important;
@@ -644,9 +654,9 @@ body.tax-blog_tag .site-header {
     width: 100% !important;
 }
 
-/* Primeiro card da coluna esquerda com margem superior */
+/* Remover margem do primeiro card */
 .blog-pda-archive .blog-masonry-card:first-child {
-    margin-top: 80px !important;
+    margin-top: 0 !important;
 }
 
 /* Alturas variadas para efeito masonry natural */
