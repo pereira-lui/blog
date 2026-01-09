@@ -153,28 +153,42 @@
     }
 
     /**
-     * Initialize Load More
+     * Initialize Infinite Scroll
      */
     function initLoadMore() {
-        const loadMoreBtn = document.querySelector('.blog-load-more-btn');
         const postsGrid = document.getElementById('blog-posts-grid');
+        const loadMoreBtn = document.querySelector('.blog-load-more-btn');
         
-        if (!loadMoreBtn || !postsGrid) return;
+        if (!postsGrid) return;
         
-        // Contador de cores - começa com quantidade de cards já exibidos
+        // Esconder o botão de carregar mais (se existir)
+        if (loadMoreBtn) {
+            loadMoreBtn.style.display = 'none';
+        }
+        
+        // Configurações
+        let page = 1;
+        let isLoading = false;
+        let hasMore = true;
         let colorStart = postsGrid.querySelectorAll('.blog-masonry-card').length;
+        const perPage = loadMoreBtn ? parseInt(loadMoreBtn.dataset.perPage) || 10 : 10;
+        const exclude = loadMoreBtn ? loadMoreBtn.dataset.exclude || '' : '';
         
-        loadMoreBtn.addEventListener('click', function() {
-            const btn = this;
-            const page = parseInt(btn.dataset.page) + 1;
-            const perPage = parseInt(btn.dataset.perPage);
-            const exclude = btn.dataset.exclude;
+        // Criar elemento de loading
+        const loadingEl = document.createElement('div');
+        loadingEl.className = 'blog-infinite-loading';
+        loadingEl.innerHTML = '<div class="blog-loading-spinner"></div>';
+        loadingEl.style.display = 'none';
+        postsGrid.parentNode.insertBefore(loadingEl, postsGrid.nextSibling);
+        
+        // Função para carregar mais posts
+        function loadMorePosts() {
+            if (isLoading || !hasMore) return;
             
-            // Add loading state
-            btn.classList.add('loading');
-            btn.disabled = true;
+            isLoading = true;
+            loadingEl.style.display = 'flex';
+            page++;
             
-            // AJAX request
             const formData = new FormData();
             formData.append('action', 'blog_pda_load_more');
             formData.append('page', page);
@@ -192,33 +206,44 @@
             })
             .then(function(data) {
                 if (data.success && data.data.html) {
-                    // Append new posts
                     postsGrid.insertAdjacentHTML('beforeend', data.data.html);
                     
-                    // Update page number
-                    btn.dataset.page = page;
-                    
-                    // Update color start for next load
                     if (data.data.nextColorStart) {
                         colorStart = data.data.nextColorStart;
                     }
                     
-                    // Hide button if no more posts
-                    if (!data.data.hasMore) {
-                        btn.style.display = 'none';
-                    }
+                    hasMore = data.data.hasMore;
                 } else {
-                    btn.style.display = 'none';
+                    hasMore = false;
                 }
             })
             .catch(function(error) {
                 console.error('Error loading more posts:', error);
             })
             .finally(function() {
-                btn.classList.remove('loading');
-                btn.disabled = false;
+                isLoading = false;
+                loadingEl.style.display = 'none';
             });
+        }
+        
+        // Intersection Observer para detectar scroll
+        const observerTarget = document.createElement('div');
+        observerTarget.className = 'blog-scroll-trigger';
+        postsGrid.parentNode.insertBefore(observerTarget, loadingEl);
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(function(entry) {
+                if (entry.isIntersecting && hasMore && !isLoading) {
+                    loadMorePosts();
+                }
+            });
+        }, {
+            root: null,
+            rootMargin: '200px',
+            threshold: 0
         });
+        
+        observer.observe(observerTarget);
     }
 
     /**
