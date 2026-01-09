@@ -120,10 +120,8 @@
                 const videoId = this.dataset.videoId;
                 if (!videoId) return;
                 
-                // Set iframe src with all necessary parameters
-                // origin parameter helps with cross-origin issues
-                const origin = encodeURIComponent(window.location.origin);
-                iframe.src = 'https://www.youtube-nocookie.com/embed/' + videoId + '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1&origin=' + origin;
+                // URL simples do embed do YouTube (sem parâmetros problemáticos)
+                iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
                 
                 // Show modal
                 modal.classList.add('active');
