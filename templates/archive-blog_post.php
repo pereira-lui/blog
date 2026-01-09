@@ -157,23 +157,25 @@ if ($popular_query->post_count < 3) {
             <h2 class="blog-section-title"><?php _e('Os 10 artigos mais lidos', 'blog-pda'); ?></h2>
         </div>
         <div class="blog-popular-wrapper">
-            <div class="blog-popular-track">
-                <?php while ($popular_query->have_posts()) : $popular_query->the_post(); ?>
-                <div class="blog-popular-item">
-                    <a href="<?php the_permalink(); ?>" class="blog-popular-link">
-                        <div class="blog-popular-image">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('medium'); ?>
-                            <?php else : ?>
-                                <div class="blog-popular-placeholder"></div>
-                            <?php endif; ?>
-                            <span class="blog-popular-title-overlay"><?php the_title(); ?></span>
-                        </div>
-                    </a>
+            <div class="swiper blog-popular-swiper">
+                <div class="swiper-wrapper">
+                    <?php while ($popular_query->have_posts()) : $popular_query->the_post(); ?>
+                    <div class="swiper-slide blog-popular-item">
+                        <a href="<?php the_permalink(); ?>" class="blog-popular-link">
+                            <div class="blog-popular-image">
+                                <?php if (has_post_thumbnail()) : ?>
+                                    <?php the_post_thumbnail('medium'); ?>
+                                <?php else : ?>
+                                    <div class="blog-popular-placeholder"></div>
+                                <?php endif; ?>
+                                <span class="blog-popular-title-overlay"><?php the_title(); ?></span>
+                            </div>
+                        </a>
+                    </div>
+                    <?php endwhile; ?>
                 </div>
-                <?php endwhile; ?>
             </div>
-            <button class="blog-popular-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
+            <button class="blog-popular-next swiper-button-popular" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
             </button>
         </div>
@@ -320,28 +322,30 @@ if ($popular_query->post_count < 3) {
             <h2 class="blog-section-title"><?php _e('Vídeos', 'blog-pda'); ?></h2>
         </div>
         <div class="blog-videos-wrapper">
-            <div class="blog-videos-track">
-                <?php foreach ($videos as $video) : 
-                    $video_id = Blog_PDA::get_youtube_video_id($video['url']);
-                ?>
-                <div class="blog-video-card" data-video-id="<?php echo esc_attr($video_id); ?>">
-                    <?php if (!empty($video['thumbnail'])) : ?>
-                    <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="<?php echo esc_attr($video['title'] ?? 'Video'); ?>" class="blog-video-thumbnail">
-                    <?php else : ?>
-                    <div class="blog-video-placeholder"></div>
-                    <?php endif; ?>
-                    <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M8 5v14l11-7z"/>
-                        </svg>
-                    </button>
-                    <?php if (!empty($video['title'])) : ?>
-                    <span class="blog-video-title"><?php echo esc_html($video['title']); ?></span>
-                    <?php endif; ?>
+            <div class="swiper blog-videos-swiper">
+                <div class="swiper-wrapper">
+                    <?php foreach ($videos as $video) : 
+                        $video_id = Blog_PDA::get_youtube_video_id($video['url']);
+                    ?>
+                    <div class="swiper-slide blog-video-card" data-video-id="<?php echo esc_attr($video_id); ?>">
+                        <?php if (!empty($video['thumbnail'])) : ?>
+                        <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="<?php echo esc_attr($video['title'] ?? 'Video'); ?>" class="blog-video-thumbnail">
+                        <?php else : ?>
+                        <div class="blog-video-placeholder"></div>
+                        <?php endif; ?>
+                        <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                        </button>
+                        <?php if (!empty($video['title'])) : ?>
+                        <span class="blog-video-title"><?php echo esc_html($video['title']); ?></span>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
-                <?php endforeach; ?>
             </div>
-            <button class="blog-videos-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
+            <button class="blog-videos-next swiper-button-videos" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
             </button>
         </div>

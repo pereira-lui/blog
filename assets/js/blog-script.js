@@ -19,152 +19,48 @@
     });
 
     /**
-     * Initialize Popular Posts Sliders
+     * Initialize Popular Posts Sliders (Swiper)
      */
     function initSliders() {
-        // Nova estrutura: .blog-popular-wrapper
-        const wrappers = document.querySelectorAll('.blog-popular-wrapper');
+        // Swiper para popular posts
+        const popularSwipers = document.querySelectorAll('.blog-popular-swiper');
         
-        wrappers.forEach(function(wrapper) {
-            const track = wrapper.querySelector('.blog-popular-track');
-            const nextBtn = wrapper.querySelector('.blog-popular-next');
+        popularSwipers.forEach(function(swiperEl) {
+            const wrapper = swiperEl.closest('.blog-popular-wrapper');
+            const nextBtn = wrapper ? wrapper.querySelector('.blog-popular-next') : null;
             
-            if (!track) return;
-            
-            const scrollAmount = 300; // item width + gap
-            
-            if (nextBtn) {
-                nextBtn.addEventListener('click', function() {
-                    track.scrollBy({
-                        left: scrollAmount,
-                        behavior: 'smooth'
-                    });
-                });
-            }
-            
-            initDragScroll(track);
-        });
-        
-        // Estrutura antiga (compatibilidade)
-        const sliders = document.querySelectorAll('.blog-popular-slider');
-        
-        sliders.forEach(function(slider) {
-            const track = slider.querySelector('.blog-popular-track');
-            const prevBtn = slider.querySelector('.blog-slider-prev');
-            const nextBtn = slider.querySelector('.blog-slider-next');
-            
-            if (!track) return;
-            
-            const scrollAmount = 220; // item width + gap
-            
-            if (prevBtn) {
-                prevBtn.addEventListener('click', function() {
-                    track.scrollBy({
-                        left: -scrollAmount * 2,
-                        behavior: 'smooth'
-                    });
-                });
-            }
-            
-            if (nextBtn) {
-                nextBtn.addEventListener('click', function() {
-                    track.scrollBy({
-                        left: scrollAmount * 2,
-                        behavior: 'smooth'
-                    });
-                });
-            }
-            
-            // Update button visibility based on scroll position
-            function updateButtons() {
-                if (prevBtn) {
-                    prevBtn.style.opacity = track.scrollLeft <= 0 ? '0.5' : '1';
-                }
-                if (nextBtn) {
-                    const maxScroll = track.scrollWidth - track.clientWidth;
-                    nextBtn.style.opacity = track.scrollLeft >= maxScroll - 10 ? '0.5' : '1';
-                }
-            }
-            
-            track.addEventListener('scroll', updateButtons);
-            updateButtons();
-            
-            initDragScroll(track);
+            new Swiper(swiperEl, {
+                slidesPerView: 'auto',
+                spaceBetween: 20,
+                freeMode: true,
+                grabCursor: true,
+                navigation: nextBtn ? {
+                    nextEl: nextBtn
+                } : false
+            });
         });
     }
 
     /**
-     * Initialize Video Sliders
+     * Initialize Video Sliders (Swiper)
      */
     function initVideoSliders() {
-        // Nova estrutura: .blog-videos-wrapper
-        const wrappers = document.querySelectorAll('.blog-videos-wrapper');
+        // Swiper para vídeos
+        const videoSwipers = document.querySelectorAll('.blog-videos-swiper');
         
-        wrappers.forEach(function(wrapper) {
-            const track = wrapper.querySelector('.blog-videos-track');
-            const nextBtn = wrapper.querySelector('.blog-videos-next');
+        videoSwipers.forEach(function(swiperEl) {
+            const wrapper = swiperEl.closest('.blog-videos-wrapper');
+            const nextBtn = wrapper ? wrapper.querySelector('.blog-videos-next') : null;
             
-            if (!track) return;
-            
-            const scrollAmount = 300; // item width + gap
-            
-            if (nextBtn) {
-                nextBtn.addEventListener('click', function() {
-                    track.scrollBy({
-                        left: scrollAmount,
-                        behavior: 'smooth'
-                    });
-                });
-            }
-            
-            initDragScroll(track);
-        });
-        
-        // Estrutura antiga (compatibilidade)
-        const sliders = document.querySelectorAll('.blog-videos-slider');
-        
-        sliders.forEach(function(slider) {
-            const track = slider.querySelector('.blog-videos-track');
-            const prevBtn = slider.querySelector('.blog-videos-prev');
-            const nextBtn = slider.querySelector('.blog-videos-next');
-            
-            if (!track) return;
-            
-            const scrollAmount = 216; // item width + gap
-            
-            if (prevBtn) {
-                prevBtn.addEventListener('click', function() {
-                    track.scrollBy({
-                        left: -scrollAmount * 2,
-                        behavior: 'smooth'
-                    });
-                });
-            }
-            
-            if (nextBtn) {
-                nextBtn.addEventListener('click', function() {
-                    track.scrollBy({
-                        left: scrollAmount * 2,
-                        behavior: 'smooth'
-                    });
-                });
-            }
-            
-            // Update button visibility based on scroll position
-            function updateButtons() {
-                if (prevBtn) {
-                    prevBtn.style.opacity = track.scrollLeft <= 0 ? '0.5' : '1';
-                }
-                if (nextBtn) {
-                    const maxScroll = track.scrollWidth - track.clientWidth;
-                    nextBtn.style.opacity = track.scrollLeft >= maxScroll - 10 ? '0.5' : '1';
-                }
-            }
-            
-            track.addEventListener('scroll', updateButtons);
-            updateButtons();
-            
-            initDragScroll(track);
+            new Swiper(swiperEl, {
+                slidesPerView: 'auto',
+                spaceBetween: 20,
+                freeMode: true,
+                grabCursor: true,
+                navigation: nextBtn ? {
+                    nextEl: nextBtn
+                } : false
+            });
         });
     }
 

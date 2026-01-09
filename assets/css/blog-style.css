@@ -413,7 +413,7 @@ body.tax-blog_tag .site-header {
 }
 
 /* ==========================================================================
-   Popular Posts Slider - Layout grudado à direita (igual vídeos)
+   Popular Posts Slider - Swiper (grudado à direita)
    ========================================================================== */
 .blog-popular-section {
     padding: 50px 0 !important;
@@ -429,12 +429,25 @@ body.tax-blog_tag .site-header {
 
 .blog-popular-wrapper {
     position: relative !important;
-    display: flex !important;
-    align-items: center !important;
     padding-left: calc((100% - 1200px) / 2 + 24px) !important;
     padding-right: 0 !important;
 }
 
+.blog-popular-swiper {
+    overflow: visible !important;
+    padding: 10px 0 !important;
+}
+
+.blog-popular-swiper .swiper-wrapper {
+    align-items: stretch !important;
+}
+
+.blog-popular-swiper .swiper-slide {
+    width: 280px !important;
+    height: auto !important;
+}
+
+/* Antigo track - manter para compatibilidade */
 .blog-popular-track {
     display: flex !important;
     gap: 20px !important;
@@ -849,7 +862,7 @@ body.tax-blog_tag .site-header {
 }
 
 /* ==========================================================================
-   Videos Section (Slider) - Layout grudado à direita
+   Videos Section (Slider) - Swiper (grudado à direita)
    ========================================================================== */
 .blog-videos-section {
     padding: 60px 0 !important;
@@ -865,12 +878,25 @@ body.tax-blog_tag .site-header {
 
 .blog-videos-wrapper {
     position: relative !important;
-    display: flex !important;
-    align-items: center !important;
     padding-left: calc((100% - 1200px) / 2 + 24px) !important;
     padding-right: 0 !important;
 }
 
+.blog-videos-swiper {
+    overflow: visible !important;
+    padding: 10px 0 !important;
+}
+
+.blog-videos-swiper .swiper-wrapper {
+    align-items: stretch !important;
+}
+
+.blog-videos-swiper .swiper-slide {
+    width: 280px !important;
+    height: auto !important;
+}
+
+/* Antigo track - manter para compatibilidade */
 .blog-videos-track,
 .blog-pda-archive .blog-videos-track {
     display: flex !important;
@@ -882,8 +908,6 @@ body.tax-blog_tag .site-header {
     padding: 10px 0 !important;
     padding-right: 60px !important;
     scroll-snap-type: x mandatory !important;
-}
-    padding-right: 60px !important;
 }
 
 .blog-videos-track::-webkit-scrollbar,
