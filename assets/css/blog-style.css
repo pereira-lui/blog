@@ -623,31 +623,14 @@ body.tax-blog_tag .site-header {
     padding-bottom: 60px !important;
 }
 
-/* Posts Grid - Masonry Layout com offset */
+/* Posts Grid - CSS Columns Masonry */
 .blog-pda-archive .blog-posts-grid.blog-masonry-grid {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 20px !important;
+    column-count: 2 !important;
+    column-gap: 20px !important;
     margin-bottom: 40px !important;
-    align-items: start !important;
 }
 
-/* Coluna esquerda (cards ímpares) começa mais abaixo */
-.blog-pda-archive .blog-masonry-card:nth-child(odd) {
-    margin-top: 60px !important;
-}
-
-/* Primeiro card da esquerda com margem */
-.blog-pda-archive .blog-masonry-card:first-child {
-    margin-top: 60px !important;
-}
-
-/* Cards da direita (pares) sem margem extra */
-.blog-pda-archive .blog-masonry-card:nth-child(even) {
-    margin-top: 0 !important;
-}
-
-/* Masonry Card - altura variável */
+/* Masonry Card */
 .blog-pda-archive .blog-masonry-card {
     position: relative !important;
     border-radius: 20px !important;
@@ -655,31 +638,40 @@ body.tax-blog_tag .site-header {
     background: #f0f0f0 !important;
     box-shadow: none !important;
     transition: all 0.3s ease !important;
+    break-inside: avoid !important;
+    margin-bottom: 20px !important;
+    display: inline-block !important;
+    width: 100% !important;
 }
 
-/* Alturas variadas para efeito masonry */
+/* Primeiro card da coluna esquerda com margem superior */
+.blog-pda-archive .blog-masonry-card:first-child {
+    margin-top: 80px !important;
+}
+
+/* Alturas variadas para efeito masonry natural */
 .blog-pda-archive .blog-masonry-card:nth-child(6n+1) {
-    min-height: 320px !important;
-}
-
-.blog-pda-archive .blog-masonry-card:nth-child(6n+2) {
-    min-height: 280px !important;
-}
-
-.blog-pda-archive .blog-masonry-card:nth-child(6n+3) {
-    min-height: 350px !important;
-}
-
-.blog-pda-archive .blog-masonry-card:nth-child(6n+4) {
-    min-height: 300px !important;
-}
-
-.blog-pda-archive .blog-masonry-card:nth-child(6n+5) {
     min-height: 380px !important;
 }
 
-.blog-pda-archive .blog-masonry-card:nth-child(6n+6) {
+.blog-pda-archive .blog-masonry-card:nth-child(6n+2) {
+    min-height: 300px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(6n+3) {
+    min-height: 420px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(6n+4) {
     min-height: 340px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(6n+5) {
+    min-height: 360px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(6n+6) {
+    min-height: 400px !important;
 }
 
 .blog-pda-archive .blog-masonry-card .blog-post-card-link {
