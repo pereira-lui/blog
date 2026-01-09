@@ -213,20 +213,50 @@ body.tax-blog_tag .site-header {
    ========================================================================== */
 .blog-pda-archive .blog-section-title,
 .blog-pda-single .blog-section-title {
-    font-size: 32px !important;
+    font-size: 28px !important;
     font-weight: 700 !important;
     color: var(--blog-text-dark) !important;
     margin-bottom: 32px !important;
     line-height: 1.2 !important;
+    display: inline-block !important;
+    position: relative !important;
+    padding-bottom: 12px !important;
+}
+
+.blog-pda-archive .blog-section-title::after,
+.blog-pda-single .blog-section-title::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 60px !important;
+    height: 4px !important;
+    background: var(--blog-primary-color) !important;
+    border-radius: 2px !important;
 }
 
 .blog-pda-archive .blog-section-title-white,
 .blog-pda-single .blog-section-title-white {
-    font-size: 48px !important;
+    font-size: 36px !important;
     font-weight: 700 !important;
-    color: var(--blog-background) !important;
-    line-height: 1.1 !important;
-    margin: 0 !important;
+    color: var(--blog-text-dark) !important;
+    line-height: 1.2 !important;
+    margin: 0 0 32px 0 !important;
+    display: inline-block !important;
+    position: relative !important;
+    padding-bottom: 12px !important;
+}
+
+.blog-pda-archive .blog-section-title-white::after,
+.blog-pda-single .blog-section-title-white::after {
+    content: '' !important;
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 60px !important;
+    height: 4px !important;
+    background: var(--blog-primary-color) !important;
+    border-radius: 2px !important;
 }
 
 /* ==========================================================================
@@ -584,14 +614,6 @@ body.tax-blog_tag .site-header {
 
 .blog-pda-archive .blog-all-posts-header::after {
     display: none !important;
-}
-
-/* Título "Todas as publicações" em roxo */
-.blog-pda-archive .blog-section-title-white {
-    color: var(--blog-primary-color) !important;
-    font-size: 36px !important;
-    font-weight: 700 !important;
-    line-height: 1.2 !important;
 }
 
 .blog-pda-archive .blog-all-posts-section > .blog-container {
