@@ -571,23 +571,25 @@ body.tax-blog_tag .site-header {
    ========================================================================== */
 .blog-pda-archive .blog-all-posts-section {
     background: var(--blog-background) !important;
+    padding-top: 60px !important;
 }
 
 .blog-pda-archive .blog-all-posts-header {
-    background: var(--blog-primary-color) !important;
-    padding: 60px 0 !important;
+    background: transparent !important;
+    padding: 0 0 40px 0 !important;
     position: relative !important;
 }
 
 .blog-pda-archive .blog-all-posts-header::after {
-    content: '' !important;
-    position: absolute !important;
-    bottom: -40px !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 80px !important;
-    background: var(--blog-primary-color) !important;
-    z-index: 0 !important;
+    display: none !important;
+}
+
+/* Título "Todas as publicações" em roxo */
+.blog-pda-archive .blog-section-title-white {
+    color: var(--blog-primary-color) !important;
+    font-size: 36px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
 }
 
 .blog-pda-archive .blog-all-posts-section > .blog-container {
@@ -597,12 +599,28 @@ body.tax-blog_tag .site-header {
     padding-bottom: 60px !important;
 }
 
-/* Posts Grid - Masonry Layout */
+/* Posts Grid - Masonry Layout com offset */
 .blog-pda-archive .blog-posts-grid.blog-masonry-grid {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 20px !important;
     margin-bottom: 40px !important;
+    align-items: start !important;
+}
+
+/* Coluna esquerda (cards ímpares) começa mais abaixo */
+.blog-pda-archive .blog-masonry-card:nth-child(odd) {
+    margin-top: 60px !important;
+}
+
+/* Primeiro card da esquerda com margem */
+.blog-pda-archive .blog-masonry-card:first-child {
+    margin-top: 60px !important;
+}
+
+/* Cards da direita (pares) sem margem extra */
+.blog-pda-archive .blog-masonry-card:nth-child(even) {
+    margin-top: 0 !important;
 }
 
 /* Masonry Card - altura variável */
@@ -612,22 +630,32 @@ body.tax-blog_tag .site-header {
     overflow: hidden !important;
     background: #f0f0f0 !important;
     box-shadow: none !important;
+    transition: all 0.3s ease !important;
 }
 
-.blog-pda-archive .blog-masonry-card:nth-child(odd) {
-    min-height: 350px !important;
+/* Alturas variadas para efeito masonry */
+.blog-pda-archive .blog-masonry-card:nth-child(6n+1) {
+    min-height: 320px !important;
 }
 
-.blog-pda-archive .blog-masonry-card:nth-child(even) {
+.blog-pda-archive .blog-masonry-card:nth-child(6n+2) {
     min-height: 280px !important;
 }
 
-.blog-pda-archive .blog-masonry-card:nth-child(3n+1) {
+.blog-pda-archive .blog-masonry-card:nth-child(6n+3) {
+    min-height: 350px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(6n+4) {
+    min-height: 300px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(6n+5) {
     min-height: 380px !important;
 }
 
-.blog-pda-archive .blog-masonry-card:nth-child(4n) {
-    min-height: 320px !important;
+.blog-pda-archive .blog-masonry-card:nth-child(6n+6) {
+    min-height: 340px !important;
 }
 
 .blog-pda-archive .blog-masonry-card .blog-post-card-link {
