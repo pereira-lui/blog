@@ -443,7 +443,9 @@ body.tax-blog_tag .site-header {
 }
 
 .blog-popular-swiper .swiper-slide {
-    width: 280px !important;
+    width: calc((100vw - ((100vw - 1200px) / 2) - 24px - 60px) / 3.4) !important;
+    max-width: 320px !important;
+    min-width: 260px !important;
     height: auto !important;
 }
 
