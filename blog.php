@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 2.1.8
+ * Version: 2.1.9
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -2330,7 +2330,8 @@ final class Blog_PDA {
         
         $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
         $per_page = isset($_POST['per_page']) ? intval($_POST['per_page']) : 9;
-        $exclude = isset($_POST['exclude']) ? intval($_POST['exclude']) : 0;
+        $exclude = isset($_POST['exclude']) ? $_POST['exclude'] : '';
+        $color_start = isset($_POST['color_start']) ? intval($_POST['color_start']) : 0;
         
         $args = [
             'post_type' => 'blog_post',
@@ -2341,36 +2342,34 @@ final class Blog_PDA {
             'order' => 'DESC'
         ];
         
-        if ($exclude) {
-            $args['post__not_in'] = [$exclude];
+        if (!empty($exclude)) {
+            $exclude_ids = array_map('intval', explode(',', $exclude));
+            $args['post__not_in'] = $exclude_ids;
         }
         
         $query = new WP_Query($args);
+        
+        // Cores do Parque das Aves
+        $pda_colors = ['#702F8A', '#E87722', '#009BB5', '#00A94F', '#ED1164', '#FFC20E'];
+        $color_index = $color_start;
         
         ob_start();
         
         if ($query->have_posts()) {
             while ($query->have_posts()) {
                 $query->the_post();
-                $categories = get_the_terms(get_the_ID(), 'blog_category');
+                $current_color = $pda_colors[$color_index % count($pda_colors)];
+                $color_index++;
                 ?>
-                <article class="blog-post-card">
+                <article class="blog-post-card blog-masonry-card">
                     <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
-                        <?php if (has_post_thumbnail()) : ?>
                         <div class="blog-post-card-image">
-                            <?php the_post_thumbnail('medium_large'); ?>
-                            <?php if ($categories && !is_wp_error($categories)) : ?>
-                            <div class="blog-post-card-categories">
-                                <?php foreach (array_slice($categories, 0, 2) as $cat) : ?>
-                                    <span class="blog-category-tag"><?php echo esc_html($cat->name); ?></span>
-                                <?php endforeach; ?>
-                            </div>
+                            <?php if (has_post_thumbnail()) : ?>
+                                <?php the_post_thumbnail('large'); ?>
                             <?php endif; ?>
                         </div>
-                        <?php endif; ?>
-                        <div class="blog-post-card-content">
+                        <div class="blog-post-card-overlay" style="background-color: <?php echo $current_color; ?>;">
                             <h3 class="blog-post-card-title"><?php the_title(); ?></h3>
-                            <p class="blog-post-card-excerpt"><?php echo wp_trim_words(get_the_excerpt(), 15); ?></p>
                         </div>
                     </a>
                 </article>
@@ -2386,7 +2385,8 @@ final class Blog_PDA {
         
         wp_send_json_success([
             'html' => $html,
-            'hasMore' => $has_more
+            'hasMore' => $has_more,
+            'nextColorStart' => $color_index
         ]);
     }
 

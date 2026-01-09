@@ -597,15 +597,96 @@ body.tax-blog_tag .site-header {
     padding-bottom: 60px !important;
 }
 
-/* Posts Grid - 2 colunas */
-.blog-pda-archive .blog-posts-grid {
+/* Posts Grid - Masonry Layout */
+.blog-pda-archive .blog-posts-grid.blog-masonry-grid {
     display: grid !important;
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 30px !important;
+    gap: 20px !important;
     margin-bottom: 40px !important;
 }
 
-/* Post Card */
+/* Masonry Card - altura variável */
+.blog-pda-archive .blog-masonry-card {
+    position: relative !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+    background: #f0f0f0 !important;
+    box-shadow: none !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(odd) {
+    min-height: 350px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(even) {
+    min-height: 280px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(3n+1) {
+    min-height: 380px !important;
+}
+
+.blog-pda-archive .blog-masonry-card:nth-child(4n) {
+    min-height: 320px !important;
+}
+
+.blog-pda-archive .blog-masonry-card .blog-post-card-link {
+    display: block !important;
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: inherit !important;
+}
+
+.blog-pda-archive .blog-masonry-card .blog-post-card-image {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    aspect-ratio: unset !important;
+}
+
+.blog-pda-archive .blog-masonry-card .blog-post-card-image img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    transition: transform 0.4s ease !important;
+}
+
+.blog-pda-archive .blog-masonry-card:hover .blog-post-card-image img {
+    transform: scale(1.05) !important;
+}
+
+/* Overlay colorido na parte inferior */
+.blog-pda-archive .blog-masonry-card .blog-post-card-overlay {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding: 20px !important;
+    color: #FFFFFF !important;
+    z-index: 2 !important;
+}
+
+.blog-pda-archive .blog-masonry-card .blog-post-card-title {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+    color: #FFFFFF !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+
+.blog-pda-archive .blog-masonry-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Post Card padrão (para outras páginas) */
 .blog-pda-archive .blog-post-card,
 .blog-pda-single .blog-post-card {
     background: var(--blog-background) !important;

@@ -163,6 +163,9 @@
         
         if (!loadMoreBtn || !postsGrid) return;
         
+        // Contador de cores - começa com quantidade de cards já exibidos
+        let colorStart = postsGrid.querySelectorAll('.blog-masonry-card').length;
+        
         loadMoreBtn.addEventListener('click', function() {
             const btn = this;
             const page = parseInt(btn.dataset.page) + 1;
@@ -179,6 +182,7 @@
             formData.append('page', page);
             formData.append('per_page', perPage);
             formData.append('exclude', exclude);
+            formData.append('color_start', colorStart);
             formData.append('nonce', blogPdaVars.nonce);
             
             fetch(blogPdaVars.ajaxUrl, {
@@ -195,6 +199,11 @@
                     
                     // Update page number
                     btn.dataset.page = page;
+                    
+                    // Update color start for next load
+                    if (data.data.nextColorStart) {
+                        colorStart = data.data.nextColorStart;
+                    }
                     
                     // Hide button if no more posts
                     if (!data.data.hasMore) {

@@ -193,7 +193,7 @@ if ($popular_query->post_count < 3) {
             </div>
         </div>
         <div class="blog-container">
-            <div class="blog-posts-grid" id="blog-posts-grid">
+            <div class="blog-posts-grid blog-masonry-grid" id="blog-posts-grid">
                 <?php
                 $exclude_ids = $hero_posts;
                 $all_posts_args = [
@@ -206,21 +206,23 @@ if ($popular_query->post_count < 3) {
                 ];
                 $all_posts_query = new WP_Query($all_posts_args);
                 
+                // Cores do Parque das Aves
+                $pda_colors = ['#702F8A', '#E87722', '#009BB5', '#00A94F', '#ED1164', '#FFC20E'];
+                $color_index = 0;
+                
                 if ($all_posts_query->have_posts()) :
                     while ($all_posts_query->have_posts()) : $all_posts_query->the_post();
-                        $categories = get_the_terms(get_the_ID(), 'blog_category');
+                        $current_color = $pda_colors[$color_index % count($pda_colors)];
+                        $color_index++;
                 ?>
-                <article class="blog-post-card">
+                <article class="blog-post-card blog-masonry-card">
                     <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
                         <div class="blog-post-card-image">
                             <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('medium_large'); ?>
-                            <?php endif; ?>
-                            <?php if ($categories && !is_wp_error($categories)) : ?>
-                            <span class="blog-post-card-category"><?php echo esc_html($categories[0]->name); ?></span>
+                                <?php the_post_thumbnail('large'); ?>
                             <?php endif; ?>
                         </div>
-                        <div class="blog-post-card-content">
+                        <div class="blog-post-card-overlay" style="background-color: <?php echo $current_color; ?>;">
                             <h3 class="blog-post-card-title"><?php the_title(); ?></h3>
                         </div>
                     </a>
