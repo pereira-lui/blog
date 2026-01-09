@@ -153,32 +153,29 @@ if ($popular_query->post_count < 3) {
     <!-- Os 10 Artigos Mais Lidos -->
     <?php if ($popular_query->have_posts()) : ?>
     <section class="blog-popular-section">
-        <div class="blog-container">
+        <div class="blog-container blog-container-popular">
             <h2 class="blog-section-title"><?php _e('Os 10 artigos mais lidos', 'blog-pda'); ?></h2>
-            <div class="blog-popular-slider">
-                <button class="blog-slider-prev" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>
-                </button>
-                <div class="blog-popular-track">
-                    <?php while ($popular_query->have_posts()) : $popular_query->the_post(); ?>
-                    <div class="blog-popular-item">
-                        <a href="<?php the_permalink(); ?>" class="blog-popular-link">
-                            <div class="blog-popular-image">
-                                <?php if (has_post_thumbnail()) : ?>
-                                    <?php the_post_thumbnail('medium'); ?>
-                                <?php else : ?>
-                                    <div class="blog-popular-placeholder"></div>
-                                <?php endif; ?>
-                            </div>
-                            <h3 class="blog-popular-title"><?php the_title(); ?></h3>
-                        </a>
-                    </div>
-                    <?php endwhile; ?>
+        </div>
+        <div class="blog-popular-wrapper">
+            <div class="blog-popular-track">
+                <?php while ($popular_query->have_posts()) : $popular_query->the_post(); ?>
+                <div class="blog-popular-item">
+                    <a href="<?php the_permalink(); ?>" class="blog-popular-link">
+                        <div class="blog-popular-image">
+                            <?php if (has_post_thumbnail()) : ?>
+                                <?php the_post_thumbnail('medium'); ?>
+                            <?php else : ?>
+                                <div class="blog-popular-placeholder"></div>
+                            <?php endif; ?>
+                            <span class="blog-popular-title-overlay"><?php the_title(); ?></span>
+                        </div>
+                    </a>
                 </div>
-                <button class="blog-slider-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
-                </button>
+                <?php endwhile; ?>
             </div>
+            <button class="blog-popular-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
+            </button>
         </div>
     </section>
     <?php wp_reset_postdata(); endif; ?>

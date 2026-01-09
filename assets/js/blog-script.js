@@ -22,6 +22,30 @@
      * Initialize Popular Posts Sliders
      */
     function initSliders() {
+        // Nova estrutura: .blog-popular-wrapper
+        const wrappers = document.querySelectorAll('.blog-popular-wrapper');
+        
+        wrappers.forEach(function(wrapper) {
+            const track = wrapper.querySelector('.blog-popular-track');
+            const nextBtn = wrapper.querySelector('.blog-popular-next');
+            
+            if (!track) return;
+            
+            const scrollAmount = 300; // item width + gap
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    track.scrollBy({
+                        left: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+            
+            initDragScroll(track);
+        });
+        
+        // Estrutura antiga (compatibilidade)
         const sliders = document.querySelectorAll('.blog-popular-slider');
         
         sliders.forEach(function(slider) {
