@@ -477,13 +477,13 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 display: flex !important;
                 flex-direction: row !important;
                 gap: 40px !important;
+                align-items: stretch !important;
             }
             
             /* Área fixa da imagem (esquerda) */
             #blog-pda-image-area-<?php echo esc_attr($widget_id); ?> {
                 flex: 0 0 <?php echo $image_width; ?>px !important;
                 width: <?php echo $image_width; ?>px !important;
-                min-height: <?php echo $image_height; ?>px !important;
                 position: relative !important;
             }
             
@@ -597,12 +597,12 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             warmCache();
             
             function positionImage(item) {
-                // Calcular posição do item em relação à área da imagem
+                // Calcular posição do item em relação ao widget
                 const itemRect = item.getBoundingClientRect();
-                const areaRect = imageArea.getBoundingClientRect();
+                const widgetRect = widget.getBoundingClientRect();
                 
                 // Posicionar a imagem alinhada com o topo do item
-                const topOffset = itemRect.top - areaRect.top;
+                const topOffset = itemRect.top - widgetRect.top;
                 previewImg.style.top = topOffset + 'px';
             }
             
