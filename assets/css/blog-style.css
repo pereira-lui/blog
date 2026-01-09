@@ -621,6 +621,7 @@ body.tax-blog_tag .site-header {
     z-index: 1 !important;
     padding-top: 0 !important;
     padding-bottom: 60px !important;
+    margin-top: -80px !important;
 }
 
 /* Posts Grid - Duas Colunas com Offset */
