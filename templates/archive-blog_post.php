@@ -319,37 +319,34 @@ if ($popular_query->post_count < 3) {
     if (!empty($videos)) : 
     ?>
     <section class="blog-videos-section">
-        <div class="blog-container">
+        <div class="blog-container blog-container-videos">
             <h2 class="blog-section-title"><?php _e('Vídeos', 'blog-pda'); ?></h2>
-            <div class="blog-videos-slider">
-                <button class="blog-videos-prev" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>
-                </button>
-                <div class="blog-videos-track">
-                    <?php foreach ($videos as $video) : 
-                        $video_id = Blog_PDA::get_youtube_video_id($video['url']);
-                    ?>
-                    <div class="blog-video-card" data-video-id="<?php echo esc_attr($video_id); ?>">
-                        <?php if (!empty($video['thumbnail'])) : ?>
-                        <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="<?php echo esc_attr($video['title'] ?? 'Video'); ?>" class="blog-video-thumbnail">
-                        <?php else : ?>
-                        <div class="blog-video-placeholder"></div>
-                        <?php endif; ?>
-                        <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M8 5v14l11-7z"/>
-                            </svg>
-                        </button>
-                        <?php if (!empty($video['title'])) : ?>
-                        <span class="blog-video-title"><?php echo esc_html($video['title']); ?></span>
-                        <?php endif; ?>
-                    </div>
-                    <?php endforeach; ?>
+        </div>
+        <div class="blog-videos-wrapper">
+            <div class="blog-videos-track">
+                <?php foreach ($videos as $video) : 
+                    $video_id = Blog_PDA::get_youtube_video_id($video['url']);
+                ?>
+                <div class="blog-video-card" data-video-id="<?php echo esc_attr($video_id); ?>">
+                    <?php if (!empty($video['thumbnail'])) : ?>
+                    <img src="<?php echo esc_url($video['thumbnail']); ?>" alt="<?php echo esc_attr($video['title'] ?? 'Video'); ?>" class="blog-video-thumbnail">
+                    <?php else : ?>
+                    <div class="blog-video-placeholder"></div>
+                    <?php endif; ?>
+                    <button class="blog-video-play" aria-label="<?php _e('Reproduzir vídeo', 'blog-pda'); ?>">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                        </svg>
+                    </button>
+                    <?php if (!empty($video['title'])) : ?>
+                    <span class="blog-video-title"><?php echo esc_html($video['title']); ?></span>
+                    <?php endif; ?>
                 </div>
-                <button class="blog-videos-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
-                </button>
+                <?php endforeach; ?>
             </div>
+            <button class="blog-videos-next" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9,6 15,12 9,18"></polyline></svg>
+            </button>
         </div>
     </section>
     <?php endif; ?>

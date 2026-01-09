@@ -73,6 +73,30 @@
      * Initialize Video Sliders
      */
     function initVideoSliders() {
+        // Nova estrutura: .blog-videos-wrapper
+        const wrappers = document.querySelectorAll('.blog-videos-wrapper');
+        
+        wrappers.forEach(function(wrapper) {
+            const track = wrapper.querySelector('.blog-videos-track');
+            const nextBtn = wrapper.querySelector('.blog-videos-next');
+            
+            if (!track) return;
+            
+            const scrollAmount = 300; // item width + gap
+            
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function() {
+                    track.scrollBy({
+                        left: scrollAmount,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+            
+            initDragScroll(track);
+        });
+        
+        // Estrutura antiga (compatibilidade)
         const sliders = document.querySelectorAll('.blog-videos-slider');
         
         sliders.forEach(function(slider) {
