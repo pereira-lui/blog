@@ -883,7 +883,8 @@ body.tax-blog_tag .site-header {
     background: var(--blog-background) !important;
 }
 
-.blog-videos-slider {
+.blog-videos-slider,
+.blog-pda-archive .blog-videos-slider {
     position: relative !important;
     display: flex !important;
     align-items: center !important;
@@ -891,38 +892,52 @@ body.tax-blog_tag .site-header {
 }
 
 .blog-videos-prev,
-.blog-videos-next {
+.blog-videos-next,
+.blog-pda-archive .blog-videos-prev,
+.blog-pda-archive .blog-videos-next,
+.blog-pda-single .blog-videos-prev,
+.blog-pda-single .blog-videos-next {
     flex: 0 0 auto !important;
     width: 48px !important;
     height: 48px !important;
-    background: var(--blog-background) !important;
-    border: 2px solid var(--blog-border-color) !important;
+    background: #FFFFFF !important;
+    border: 2px solid #BFBEBD !important;
     border-radius: 50% !important;
     cursor: pointer !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    transition: var(--blog-transition) !important;
-    color: var(--blog-text-color) !important;
+    transition: all 0.3s ease !important;
+    color: #1F1F1F !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 .blog-videos-prev svg,
-.blog-videos-next svg {
+.blog-videos-next svg,
+.blog-pda-archive .blog-videos-prev svg,
+.blog-pda-archive .blog-videos-next svg,
+.blog-pda-single .blog-videos-prev svg,
+.blog-pda-single .blog-videos-next svg {
     width: 24px !important;
     height: 24px !important;
     display: block !important;
     stroke: currentColor !important;
     fill: none !important;
+    stroke-width: 2 !important;
 }
 
 .blog-videos-prev:hover,
-.blog-videos-next:hover {
-    background: var(--blog-orange) !important;
-    border-color: var(--blog-orange) !important;
+.blog-videos-next:hover,
+.blog-pda-archive .blog-videos-prev:hover,
+.blog-pda-archive .blog-videos-next:hover {
+    background: #E87722 !important;
+    border-color: #E87722 !important;
     color: #FFFFFF !important;
 }
 
-.blog-videos-track {
+.blog-videos-track,
+.blog-pda-archive .blog-videos-track {
     flex: 1 !important;
     display: flex !important;
     gap: 16px !important;
@@ -933,11 +948,13 @@ body.tax-blog_tag .site-header {
     padding: 10px 0 !important;
 }
 
-.blog-videos-track::-webkit-scrollbar {
+.blog-videos-track::-webkit-scrollbar,
+.blog-pda-archive .blog-videos-track::-webkit-scrollbar {
     display: none !important;
 }
 
-.blog-video-card {
+.blog-video-card,
+.blog-pda-archive .blog-video-card {
     flex: 0 0 auto !important;
     width: 200px !important;
     position: relative !important;
