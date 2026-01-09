@@ -6,22 +6,38 @@
  */
 
 /* ==========================================================================
-   CSS Variables
+   CSS Variables - Cores do Site Parque das Aves
    ========================================================================== */
 :root {
-    --blog-primary-color: #9B2D9B !important;
-    --blog-primary-dark: #7A1F7A !important;
-    --blog-primary-light: #E8D5E8 !important;
-    --blog-orange: #F5A623 !important;
-    --blog-orange-hover: #E09000 !important;
-    --blog-text-dark: #1A1A1A !important;
-    --blog-text-color: #333333 !important;
+    /* Cores Principais */
+    --blog-primary-color: #702F8A !important;      /* Roxo */
+    --blog-primary-dark: #5A2570 !important;       /* Roxo escuro */
+    --blog-primary-light: #E8D5F0 !important;      /* Roxo claro */
+    
+    /* Cores Secundárias */
+    --blog-orange: #E87722 !important;             /* Laranjado */
+    --blog-orange-hover: #D06A1D !important;       /* Laranjado hover */
+    --blog-blue-light: #009BB5 !important;         /* Azul claro */
+    --blog-blue-dark: #004680 !important;          /* Azul escuro */
+    --blog-green: #00AC50 !important;              /* Verde */
+    --blog-red: #EF3340 !important;                /* Vermelho */
+    --blog-pink: #DF6286 !important;               /* Rosa */
+    --blog-yellow: #EFBE7D !important;             /* Amarelo */
+    
+    /* Tons de Cinza/Preto */
+    --blog-text-dark: #1F1F1F !important;          /* Preto claro */
+    --blog-text-color: #1F1F1F !important;         /* Preto claro */
     --blog-text-light: #666666 !important;
-    --blog-text-muted: #999999 !important;
-    --blog-background: #FFFFFF !important;
+    --blog-text-muted: #BFBEBD !important;         /* Cinza */
+    --blog-black: #000000 !important;              /* Preto */
+    
+    /* Backgrounds */
+    --blog-background: #FFFFFF !important;         /* Branco */
     --blog-background-light: #F5F5F5 !important;
     --blog-background-alt: #FAFAFA !important;
-    --blog-border-color: #E0E0E0 !important;
+    --blog-border-color: #BFBEBD !important;       /* Cinza */
+    
+    /* Efeitos */
     --blog-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
     --blog-shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
     --blog-radius: 8px !important;
