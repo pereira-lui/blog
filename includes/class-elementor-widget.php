@@ -597,12 +597,13 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             warmCache();
             
             function positionImage(item) {
-                // Calcular posição do item em relação ao widget
+                // Calcular posição do item em relação à imageArea (onde a imagem está posicionada)
                 const itemRect = item.getBoundingClientRect();
-                const widgetRect = widget.getBoundingClientRect();
+                const imageAreaRect = imageArea.getBoundingClientRect();
                 
                 // Posicionar a imagem alinhada com o topo do item
-                const topOffset = itemRect.top - widgetRect.top;
+                // Como a imagem é position:absolute dentro de imageArea, usamos imageArea como referência
+                const topOffset = itemRect.top - imageAreaRect.top;
                 previewImg.style.top = topOffset + 'px';
             }
             
