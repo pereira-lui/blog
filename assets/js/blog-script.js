@@ -153,7 +153,7 @@
     }
 
     /**
-     * Initialize Infinite Scroll
+     * Initialize Load More Button
      */
     function initLoadMore() {
         const postsGrid = document.getElementById('blog-posts-grid');
@@ -161,35 +161,20 @@
         const leftColumn = postsGrid ? postsGrid.querySelector('.blog-masonry-left') : null;
         const rightColumn = postsGrid ? postsGrid.querySelector('.blog-masonry-right') : null;
         
-        if (!postsGrid || !leftColumn || !rightColumn) return;
-        
-        // Esconder o botão de carregar mais (se existir)
-        if (loadMoreBtn) {
-            loadMoreBtn.style.display = 'none';
-        }
+        if (!postsGrid || !loadMoreBtn || !leftColumn || !rightColumn) return;
         
         // Configurações
-        let page = 1;
-        let isLoading = false;
-        let hasMore = true;
         let colorStart = postsGrid.querySelectorAll('.blog-masonry-card').length;
-        const perPage = loadMoreBtn ? parseInt(loadMoreBtn.dataset.perPage) || 10 : 10;
-        const exclude = loadMoreBtn ? loadMoreBtn.dataset.exclude || '' : '';
         
-        // Criar elemento de loading
-        const loadingEl = document.createElement('div');
-        loadingEl.className = 'blog-infinite-loading';
-        loadingEl.innerHTML = '<div class="blog-loading-spinner"></div>';
-        loadingEl.style.display = 'none';
-        postsGrid.parentNode.insertBefore(loadingEl, postsGrid.nextSibling);
-        
-        // Função para carregar mais posts
-        function loadMorePosts() {
-            if (isLoading || !hasMore) return;
+        loadMoreBtn.addEventListener('click', function() {
+            const btn = this;
+            const page = parseInt(btn.dataset.page) + 1;
+            const perPage = parseInt(btn.dataset.perPage) || 10;
+            const exclude = btn.dataset.exclude || '';
             
-            isLoading = true;
-            loadingEl.style.display = 'flex';
-            page++;
+            // Add loading state
+            btn.classList.add('loading');
+            btn.disabled = true;
             
             const formData = new FormData();
             formData.append('action', 'blog_pda_load_more');
@@ -216,42 +201,30 @@
                         rightColumn.insertAdjacentHTML('beforeend', data.data.rightHtml);
                     }
                     
+                    // Atualizar página
+                    btn.dataset.page = page;
+                    
+                    // Atualizar colorStart
                     if (data.data.nextColorStart) {
                         colorStart = data.data.nextColorStart;
                     }
                     
-                    hasMore = data.data.hasMore;
+                    // Esconder botão se não há mais posts
+                    if (!data.data.hasMore) {
+                        btn.style.display = 'none';
+                    }
                 } else {
-                    hasMore = false;
+                    btn.style.display = 'none';
                 }
             })
             .catch(function(error) {
                 console.error('Error loading more posts:', error);
             })
             .finally(function() {
-                isLoading = false;
-                loadingEl.style.display = 'none';
+                btn.classList.remove('loading');
+                btn.disabled = false;
             });
-        }
-        
-        // Intersection Observer para detectar scroll
-        const observerTarget = document.createElement('div');
-        observerTarget.className = 'blog-scroll-trigger';
-        postsGrid.parentNode.insertBefore(observerTarget, loadingEl);
-        
-        const observer = new IntersectionObserver(function(entries) {
-            entries.forEach(function(entry) {
-                if (entry.isIntersecting && hasMore && !isLoading) {
-                    loadMorePosts();
-                }
-            });
-        }, {
-            root: null,
-            rootMargin: '200px',
-            threshold: 0
         });
-        
-        observer.observe(observerTarget);
     }
 
     /**
