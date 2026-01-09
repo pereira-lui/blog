@@ -547,7 +547,7 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             /* Imagem de preview - posicionada na área fixa */
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?> {
                 position: absolute !important;
-                top: 0 !important;
+                top: 0;
                 left: 0 !important;
                 width: 100% !important;
                 height: <?php echo $image_height; ?>px !important;
