@@ -1254,6 +1254,38 @@ body.tax-blog_tag .site-header {
     height: 100% !important;
 }
 
+/* Video Fallback Button */
+.blog-video-fallback {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px !important;
+    margin-top: 20px !important;
+}
+
+.blog-video-fallback-link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    background: #FFFFFF !important;
+    color: #1A1A1A !important;
+    text-decoration: none !important;
+    padding: 16px 32px !important;
+    border-radius: 30px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+}
+
+.blog-video-fallback-link:hover {
+    background: #F0F0F0 !important;
+    transform: scale(1.05) !important;
+}
+
+.blog-video-fallback-link svg {
+    flex-shrink: 0 !important;
+}
+
 /* ==========================================================================
    Single Post Styles
    ========================================================================== */

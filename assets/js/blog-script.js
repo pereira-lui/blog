@@ -110,6 +110,16 @@
         const iframe = document.getElementById('blog-video-iframe');
         const overlay = modal.querySelector('.blog-video-modal-overlay');
         const closeBtn = modal.querySelector('.blog-video-modal-close');
+        const modalContent = modal.querySelector('.blog-video-modal-content');
+        
+        let currentVideoId = '';
+        
+        // Criar botão de fallback para abrir no YouTube
+        const fallbackBtn = document.createElement('div');
+        fallbackBtn.className = 'blog-video-fallback';
+        fallbackBtn.innerHTML = '<a href="#" target="_blank" rel="noopener" class="blog-video-fallback-link"><svg width="48" height="48" viewBox="0 0 24 24" fill="#FF0000"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg><span>Assistir no YouTube</span></a>';
+        fallbackBtn.style.display = 'none';
+        modalContent.appendChild(fallbackBtn);
         
         // Click on video play buttons
         document.querySelectorAll('.blog-video-card').forEach(function(card) {
@@ -120,12 +130,29 @@
                 const videoId = this.dataset.videoId;
                 if (!videoId) return;
                 
-                // URL simples do embed do YouTube (sem parâmetros problemáticos)
-                iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0';
+                currentVideoId = videoId;
+                
+                // Esconder fallback e mostrar iframe
+                fallbackBtn.style.display = 'none';
+                iframe.style.display = 'block';
+                
+                // URL do embed do YouTube
+                iframe.src = 'https://www.youtube.com/embed/' + videoId + '?autoplay=1&rel=0&enablejsapi=1';
+                
+                // Atualizar link do fallback
+                fallbackBtn.querySelector('a').href = 'https://www.youtube.com/watch?v=' + videoId;
                 
                 // Show modal
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
+                
+                // Verificar se o vídeo carregou após 3 segundos
+                setTimeout(function() {
+                    // Se ainda estiver no modal e o iframe pode estar com erro
+                    if (modal.classList.contains('active')) {
+                        fallbackBtn.style.display = 'flex';
+                    }
+                }, 3000);
             });
         });
         
@@ -134,6 +161,7 @@
             modal.classList.remove('active');
             iframe.src = '';
             document.body.style.overflow = '';
+            fallbackBtn.style.display = 'none';
         }
         
         if (closeBtn) {
