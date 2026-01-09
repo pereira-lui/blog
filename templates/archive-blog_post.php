@@ -237,8 +237,8 @@ if ($popular_query->post_count < 3) {
                 
                 <!-- Coluna Esquerda (com offset) -->
                 <div class="blog-masonry-column blog-masonry-left">
-                    <?php foreach ($left_posts as $post) : ?>
-                    <article class="blog-post-card blog-masonry-card">
+                    <?php foreach ($left_posts as $index => $post) : ?>
+                    <article class="blog-post-card blog-masonry-card" style="--mobile-order: <?php echo $index * 2; ?>;">
                         <a href="<?php echo esc_url($post['permalink']); ?>" class="blog-post-card-link">
                             <div class="blog-post-card-image">
                                 <?php echo $post['thumbnail']; ?>
@@ -253,8 +253,8 @@ if ($popular_query->post_count < 3) {
                 
                 <!-- Coluna Direita (sem offset) -->
                 <div class="blog-masonry-column blog-masonry-right">
-                    <?php foreach ($right_posts as $post) : ?>
-                    <article class="blog-post-card blog-masonry-card">
+                    <?php foreach ($right_posts as $index => $post) : ?>
+                    <article class="blog-post-card blog-masonry-card" style="--mobile-order: <?php echo $index * 2 + 1; ?>;">
                         <a href="<?php echo esc_url($post['permalink']); ?>" class="blog-post-card-link">
                             <div class="blog-post-card-image">
                                 <?php echo $post['thumbnail']; ?>

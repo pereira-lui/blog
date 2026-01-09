@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 2.2.7
+ * Version: 2.2.8
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -2356,6 +2356,11 @@ final class Blog_PDA {
         $left_html = '';
         $right_html = '';
         $post_index = 0;
+        $left_index = 0;
+        $right_index = 0;
+        
+        // Calcular base do order para novos posts
+        $order_base = $color_start;
         
         if ($query->have_posts()) {
             while ($query->have_posts()) {
@@ -2363,27 +2368,46 @@ final class Blog_PDA {
                 $current_color = $pda_colors[$color_index % count($pda_colors)];
                 $color_index++;
                 
-                ob_start();
-                ?>
-                <article class="blog-post-card blog-masonry-card">
-                    <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
-                        <div class="blog-post-card-image">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('large'); ?>
-                            <?php endif; ?>
-                        </div>
-                        <div class="blog-post-card-overlay" style="background-color: <?php echo $current_color; ?>;">
-                            <h3 class="blog-post-card-title"><?php the_title(); ?></h3>
-                        </div>
-                    </a>
-                </article>
-                <?php
-                $card_html = ob_get_clean();
-                
                 if ($post_index % 2 === 0) {
-                    $left_html .= $card_html;
+                    // Coluna esquerda (posts pares)
+                    $mobile_order = $order_base + $left_index * 2;
+                    ob_start();
+                    ?>
+                    <article class="blog-post-card blog-masonry-card" style="--mobile-order: <?php echo $mobile_order; ?>;">
+                        <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
+                            <div class="blog-post-card-image">
+                                <?php if (has_post_thumbnail()) : ?>
+                                    <?php the_post_thumbnail('large'); ?>
+                                <?php endif; ?>
+                            </div>
+                            <div class="blog-post-card-overlay" style="background-color: <?php echo $current_color; ?>;">
+                                <h3 class="blog-post-card-title"><?php the_title(); ?></h3>
+                            </div>
+                        </a>
+                    </article>
+                    <?php
+                    $left_html .= ob_get_clean();
+                    $left_index++;
                 } else {
-                    $right_html .= $card_html;
+                    // Coluna direita (posts ímpares)
+                    $mobile_order = $order_base + $right_index * 2 + 1;
+                    ob_start();
+                    ?>
+                    <article class="blog-post-card blog-masonry-card" style="--mobile-order: <?php echo $mobile_order; ?>;">
+                        <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
+                            <div class="blog-post-card-image">
+                                <?php if (has_post_thumbnail()) : ?>
+                                    <?php the_post_thumbnail('large'); ?>
+                                <?php endif; ?>
+                            </div>
+                            <div class="blog-post-card-overlay" style="background-color: <?php echo $current_color; ?>;">
+                                <h3 class="blog-post-card-title"><?php the_title(); ?></h3>
+                            </div>
+                        </a>
+                    </article>
+                    <?php
+                    $right_html .= ob_get_clean();
+                    $right_index++;
                 }
                 $post_index++;
             }

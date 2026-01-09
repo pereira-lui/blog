@@ -1720,6 +1720,29 @@ body.tax-blog_tag .site-header {
         padding: 40px 0 !important;
     }
     
+    /* Grid de duas colunas vira uma coluna em mobile */
+    .blog-pda-archive .blog-posts-grid.blog-masonry-grid {
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
+    
+    .blog-pda-archive .blog-masonry-column {
+        display: contents !important;
+    }
+    
+    /* Remove offset da coluna esquerda em mobile */
+    .blog-pda-archive .blog-masonry-left {
+        padding-top: 0 !important;
+    }
+    
+    /* Cards em mobile ficam em bloco e ordenados */
+    .blog-pda-archive .blog-masonry-card {
+        display: block !important;
+        width: 100% !important;
+        margin-bottom: 20px !important;
+        order: var(--mobile-order, 0) !important;
+    }
+    
     .blog-posts-grid {
         grid-template-columns: 1fr !important;
         gap: 20px !important;
