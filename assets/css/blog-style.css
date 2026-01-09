@@ -37,7 +37,7 @@
 .blog-pda-header {
     width: 100% !important;
     background-color: var(--blog-primary-color) !important;
-    padding: 0 !important;
+    padding: 20px 0 !important;
     margin: 0 !important;
 }
 
