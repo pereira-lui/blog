@@ -41,7 +41,7 @@ $related_query = new WP_Query($related_args);
 // Posts mais lidos (ordenado por visualizações)
 $popular_args = [
     'post_type' => 'blog_post',
-    'posts_per_page' => 20,
+    'posts_per_page' => 10,
     'post_status' => 'publish',
     'post__not_in' => [get_the_ID()],
     'meta_key' => 'blog_post_views',
@@ -50,10 +50,10 @@ $popular_args = [
 ];
 $popular_query = new WP_Query($popular_args);
 
-if ($popular_query->post_count < 5) {
+if ($popular_query->post_count < 3) {
     $popular_args = [
         'post_type' => 'blog_post',
-        'posts_per_page' => 20,
+        'posts_per_page' => 10,
         'post_status' => 'publish',
         'post__not_in' => [get_the_ID()],
         'orderby' => 'date',
@@ -308,11 +308,11 @@ if ($popular_query->post_count < 5) {
     </section>
     <?php endif; ?>
 
-    <!-- Os 20 Artigos Mais Lidos -->
+    <!-- Os 10 Artigos Mais Lidos -->
     <?php if ($popular_query->have_posts()) : ?>
     <section class="blog-popular-section blog-popular-section-bottom">
         <div class="blog-container">
-            <h2 class="blog-section-title"><?php _e('Os 20 artigos mais lidos', 'blog-pda'); ?></h2>
+            <h2 class="blog-section-title"><?php _e('Os 10 artigos mais lidos', 'blog-pda'); ?></h2>
             <div class="blog-popular-slider">
                 <div class="blog-popular-track">
                     <?php while ($popular_query->have_posts()) : $popular_query->the_post(); ?>

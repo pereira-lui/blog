@@ -61,13 +61,25 @@ if ($featured_id && !in_array($featured_id, $hero_posts)) {
 // Buscar posts mais lidos (ordenado por visualizações)
 $popular_args = [
     'post_type' => 'blog_post',
-    'posts_per_page' => 20,
+    'posts_per_page' => 10,
     'post_status' => 'publish',
     'meta_key' => 'blog_post_views',
     'orderby' => 'meta_value_num',
     'order' => 'DESC'
 ];
 $popular_query = new WP_Query($popular_args);
+
+// Fallback: se não tiver posts com views, busca os mais recentes
+if ($popular_query->post_count < 3) {
+    $popular_args = [
+        'post_type' => 'blog_post',
+        'posts_per_page' => 10,
+        'post_status' => 'publish',
+        'orderby' => 'date',
+        'order' => 'DESC'
+    ];
+    $popular_query = new WP_Query($popular_args);
+}
 ?>
 
 <!-- Cabeçalho do Blog -->
@@ -138,11 +150,11 @@ $popular_query = new WP_Query($popular_args);
         </div>
     </section>
 
-    <!-- Os 20 Artigos Mais Lidos -->
+    <!-- Os 10 Artigos Mais Lidos -->
     <?php if ($popular_query->have_posts()) : ?>
     <section class="blog-popular-section">
         <div class="blog-container">
-            <h2 class="blog-section-title"><?php _e('Os 20 artigos mais lidos', 'blog-pda'); ?></h2>
+            <h2 class="blog-section-title"><?php _e('Os 10 artigos mais lidos', 'blog-pda'); ?></h2>
             <div class="blog-popular-slider">
                 <button class="blog-slider-prev" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15,18 9,12 15,6"></polyline></svg>
