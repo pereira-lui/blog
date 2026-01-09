@@ -485,9 +485,6 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                 width: <?php echo $image_width; ?>px !important;
                 min-height: <?php echo $image_height; ?>px !important;
                 position: relative !important;
-                display: flex !important;
-                align-items: flex-start !important;
-                justify-content: center !important;
             }
             
             /* Área do conteúdo (direita) */
@@ -549,14 +546,15 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             
             /* Imagem de preview - posicionada na área fixa */
             #blog-pda-preview-<?php echo esc_attr($widget_id); ?> {
-                position: sticky !important;
-                top: 100px !important;
+                position: absolute !important;
+                top: 0 !important;
+                left: 0 !important;
                 width: 100% !important;
                 height: <?php echo $image_height; ?>px !important;
                 object-fit: cover !important;
                 border-left: <?php echo $border_width; ?>px solid var(--blog-pda-accent, #00AC50) !important;
                 opacity: 0 !important;
-                transition: opacity 0.25s ease !important;
+                transition: opacity 0.25s ease, top 0.2s ease !important;
                 pointer-events: none !important;
             }
             
@@ -579,9 +577,10 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
         (function(){
             const widget = document.getElementById('blog-pda-widget-<?php echo esc_js($widget_id); ?>');
             const previewImg = document.getElementById('blog-pda-preview-<?php echo esc_js($widget_id); ?>');
+            const imageArea = document.getElementById('blog-pda-image-area-<?php echo esc_js($widget_id); ?>');
             const postsList = widget.querySelector('.blog-pda-posts-list');
             
-            if (!widget || !previewImg || !postsList) return;
+            if (!widget || !previewImg || !postsList || !imageArea) return;
             
             let activeItem = null;
             
@@ -597,6 +596,16 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
             }
             warmCache();
             
+            function positionImage(item) {
+                // Calcular posição do item em relação à área da imagem
+                const itemRect = item.getBoundingClientRect();
+                const areaRect = imageArea.getBoundingClientRect();
+                
+                // Posicionar a imagem alinhada com o topo do item
+                const topOffset = itemRect.top - areaRect.top;
+                previewImg.style.top = topOffset + 'px';
+            }
+            
             function showImage(item) {
                 if (!item) return;
                 
@@ -610,6 +619,9 @@ class Blog_PDA_Posts_Widget extends \Elementor\Widget_Base {
                     activeItem.classList.remove('blog-pda-active');
                     activeItem.style.removeProperty('--blog-pda-accent');
                 }
+                
+                // Posicionar imagem alinhada com o item
+                positionImage(item);
                 
                 previewImg.style.setProperty('--blog-pda-accent', color);
                 item.style.setProperty('--blog-pda-accent', color);
