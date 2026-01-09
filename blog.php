@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 2.2.6
+ * Version: 2.2.7
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -2353,13 +2353,17 @@ final class Blog_PDA {
         $pda_colors = ['#702F8A', '#E87722', '#009BB5', '#00A94F', '#ED1164', '#FFC20E'];
         $color_index = $color_start;
         
-        ob_start();
+        $left_html = '';
+        $right_html = '';
+        $post_index = 0;
         
         if ($query->have_posts()) {
             while ($query->have_posts()) {
                 $query->the_post();
                 $current_color = $pda_colors[$color_index % count($pda_colors)];
                 $color_index++;
+                
+                ob_start();
                 ?>
                 <article class="blog-post-card blog-masonry-card">
                     <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
@@ -2374,17 +2378,25 @@ final class Blog_PDA {
                     </a>
                 </article>
                 <?php
+                $card_html = ob_get_clean();
+                
+                if ($post_index % 2 === 0) {
+                    $left_html .= $card_html;
+                } else {
+                    $right_html .= $card_html;
+                }
+                $post_index++;
             }
         }
         
-        $html = ob_get_clean();
         wp_reset_postdata();
         
         $total_pages = $query->max_num_pages;
         $has_more = $page < $total_pages;
         
         wp_send_json_success([
-            'html' => $html,
+            'leftHtml' => $left_html,
+            'rightHtml' => $right_html,
             'hasMore' => $has_more,
             'nextColorStart' => $color_index
         ]);

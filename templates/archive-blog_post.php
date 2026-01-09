@@ -208,30 +208,64 @@ if ($popular_query->post_count < 3) {
                 
                 // Cores do Parque das Aves
                 $pda_colors = ['#702F8A', '#E87722', '#009BB5', '#00A94F', '#ED1164', '#FFC20E'];
-                $color_index = 0;
+                
+                // Separar posts em duas colunas
+                $left_posts = [];
+                $right_posts = [];
+                $post_index = 0;
                 
                 if ($all_posts_query->have_posts()) :
                     while ($all_posts_query->have_posts()) : $all_posts_query->the_post();
-                        $current_color = $pda_colors[$color_index % count($pda_colors)];
-                        $color_index++;
-                ?>
-                <article class="blog-post-card blog-masonry-card">
-                    <a href="<?php the_permalink(); ?>" class="blog-post-card-link">
-                        <div class="blog-post-card-image">
-                            <?php if (has_post_thumbnail()) : ?>
-                                <?php the_post_thumbnail('large'); ?>
-                            <?php endif; ?>
-                        </div>
-                        <div class="blog-post-card-overlay" style="background-color: <?php echo $current_color; ?>;">
-                            <h3 class="blog-post-card-title"><?php the_title(); ?></h3>
-                        </div>
-                    </a>
-                </article>
-                <?php 
+                        $post_data = [
+                            'id' => get_the_ID(),
+                            'permalink' => get_permalink(),
+                            'title' => get_the_title(),
+                            'thumbnail' => get_the_post_thumbnail(get_the_ID(), 'large'),
+                            'color' => $pda_colors[$post_index % count($pda_colors)]
+                        ];
+                        
+                        if ($post_index % 2 === 0) {
+                            $left_posts[] = $post_data;
+                        } else {
+                            $right_posts[] = $post_data;
+                        }
+                        $post_index++;
                     endwhile;
                 endif;
                 wp_reset_postdata();
                 ?>
+                
+                <!-- Coluna Esquerda (com offset) -->
+                <div class="blog-masonry-column blog-masonry-left">
+                    <?php foreach ($left_posts as $post) : ?>
+                    <article class="blog-post-card blog-masonry-card">
+                        <a href="<?php echo esc_url($post['permalink']); ?>" class="blog-post-card-link">
+                            <div class="blog-post-card-image">
+                                <?php echo $post['thumbnail']; ?>
+                            </div>
+                            <div class="blog-post-card-overlay" style="background-color: <?php echo $post['color']; ?>;">
+                                <h3 class="blog-post-card-title"><?php echo esc_html($post['title']); ?></h3>
+                            </div>
+                        </a>
+                    </article>
+                    <?php endforeach; ?>
+                </div>
+                
+                <!-- Coluna Direita (sem offset) -->
+                <div class="blog-masonry-column blog-masonry-right">
+                    <?php foreach ($right_posts as $post) : ?>
+                    <article class="blog-post-card blog-masonry-card">
+                        <a href="<?php echo esc_url($post['permalink']); ?>" class="blog-post-card-link">
+                            <div class="blog-post-card-image">
+                                <?php echo $post['thumbnail']; ?>
+                            </div>
+                            <div class="blog-post-card-overlay" style="background-color: <?php echo $post['color']; ?>;">
+                                <h3 class="blog-post-card-title"><?php echo esc_html($post['title']); ?></h3>
+                            </div>
+                        </a>
+                    </article>
+                    <?php endforeach; ?>
+                </div>
             </div>
             
             <?php 

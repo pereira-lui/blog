@@ -158,8 +158,10 @@
     function initLoadMore() {
         const postsGrid = document.getElementById('blog-posts-grid');
         const loadMoreBtn = document.querySelector('.blog-load-more-btn');
+        const leftColumn = postsGrid ? postsGrid.querySelector('.blog-masonry-left') : null;
+        const rightColumn = postsGrid ? postsGrid.querySelector('.blog-masonry-right') : null;
         
-        if (!postsGrid) return;
+        if (!postsGrid || !leftColumn || !rightColumn) return;
         
         // Esconder o botão de carregar mais (se existir)
         if (loadMoreBtn) {
@@ -205,8 +207,14 @@
                 return response.json();
             })
             .then(function(data) {
-                if (data.success && data.data.html) {
-                    postsGrid.insertAdjacentHTML('beforeend', data.data.html);
+                if (data.success && (data.data.leftHtml || data.data.rightHtml)) {
+                    // Inserir nas colunas corretas
+                    if (data.data.leftHtml) {
+                        leftColumn.insertAdjacentHTML('beforeend', data.data.leftHtml);
+                    }
+                    if (data.data.rightHtml) {
+                        rightColumn.insertAdjacentHTML('beforeend', data.data.rightHtml);
+                    }
                     
                     if (data.data.nextColorStart) {
                         colorStart = data.data.nextColorStart;

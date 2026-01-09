@@ -623,21 +623,29 @@ body.tax-blog_tag .site-header {
     padding-bottom: 60px !important;
 }
 
-/* Posts Grid - CSS Columns Masonry */
+/* Posts Grid - Duas Colunas com Offset */
 .blog-pda-archive .blog-posts-grid.blog-masonry-grid {
-    column-count: 2 !important;
-    column-gap: 20px !important;
+    display: flex !important;
+    gap: 20px !important;
     margin-bottom: 40px !important;
 }
 
-/* Espaçador invisível para offset da coluna esquerda */
-.blog-pda-archive .blog-posts-grid.blog-masonry-grid::before {
-    content: '' !important;
-    display: block !important;
-    height: 100px !important;
-    width: 100% !important;
-    break-inside: avoid !important;
-    break-after: avoid !important;
+/* Colunas */
+.blog-pda-archive .blog-masonry-column {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+}
+
+/* Coluna esquerda - offset para baixo */
+.blog-pda-archive .blog-masonry-left {
+    padding-top: 100px !important;
+}
+
+/* Coluna direita - sem offset */
+.blog-pda-archive .blog-masonry-right {
+    padding-top: 0 !important;
 }
 
 /* Masonry Card */
@@ -648,15 +656,6 @@ body.tax-blog_tag .site-header {
     background: #f0f0f0 !important;
     box-shadow: none !important;
     transition: all 0.3s ease !important;
-    break-inside: avoid !important;
-    margin-bottom: 20px !important;
-    display: inline-block !important;
-    width: 100% !important;
-}
-
-/* Remover margem do primeiro card */
-.blog-pda-archive .blog-masonry-card:first-child {
-    margin-top: 0 !important;
 }
 
 /* Alturas variadas para efeito masonry natural */
