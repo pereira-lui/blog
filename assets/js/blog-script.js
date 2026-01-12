@@ -529,6 +529,7 @@
             let estimatedDuration = 0;
             let progressInterval = null;
             let currentSpeed = 1;
+            let isDragging = false;
             
             // Estimate duration based on average speech rate
             const wordCount = text.split(/\s+/).length;
@@ -537,7 +538,7 @@
             
             // Update progress for TTS
             function updateTTSProgress() {
-                if (!isPlaying || isPaused) return;
+                if (!isPlaying || isPaused || isDragging) return;
                 elapsedTime = (Date.now() - startTime) / 1000 * currentSpeed;
                 const percent = Math.min((elapsedTime / estimatedDuration) * 100, 100);
                 updateProgressUI(percent);
@@ -566,7 +567,7 @@
                 utterance.onstart = function() {
                     isPlaying = true;
                     isPaused = false;
-                    startTime = Date.now();
+                    startTime = Date.now() - (elapsedTime * 1000 / currentSpeed);
                     progressInterval = setInterval(updateTTSProgress, 100);
                 };
                 
@@ -595,6 +596,76 @@
                 }
             }
             
+            // Seek function for TTS (visual only - TTS doesn't support true seeking)
+            function seekToPositionTTS(e) {
+                if (!progressContainer) return;
+                
+                const rect = progressContainer.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0, Math.min(1, percent));
+                
+                // Update visual position
+                updateProgressUI(percent * 100);
+                elapsedTime = percent * estimatedDuration;
+                currentTimeEl.textContent = formatTime(elapsedTime);
+            }
+            
+            // Progress bar interactions for TTS
+            if (progressContainer) {
+                progressContainer.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    seekToPositionTTS(e);
+                });
+                
+                progressContainer.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    isDragging = true;
+                    seekToPositionTTS(e);
+                    document.body.style.userSelect = 'none';
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        seekToPositionTTS(e);
+                    }
+                });
+                
+                document.addEventListener('mouseup', function() {
+                    if (isDragging) {
+                        isDragging = false;
+                        document.body.style.userSelect = '';
+                        // Update startTime based on new position
+                        if (isPlaying && !isPaused) {
+                            startTime = Date.now() - (elapsedTime * 1000 / currentSpeed);
+                        }
+                    }
+                });
+                
+                // Touch events
+                progressContainer.addEventListener('touchstart', function(e) {
+                    isDragging = true;
+                    if (e.touches[0]) {
+                        seekToPositionTTS({ clientX: e.touches[0].clientX });
+                    }
+                }, { passive: true });
+                
+                document.addEventListener('touchmove', function(e) {
+                    if (isDragging && e.touches[0]) {
+                        seekToPositionTTS({ clientX: e.touches[0].clientX });
+                    }
+                }, { passive: true });
+                
+                document.addEventListener('touchend', function() {
+                    if (isDragging) {
+                        isDragging = false;
+                        if (isPlaying && !isPaused) {
+                            startTime = Date.now() - (elapsedTime * 1000 / currentSpeed);
+                        }
+                    }
+                });
+            }
+            
             // Play/Pause toggle
             playBtn.addEventListener('click', function() {
                 if (!isPlaying && !isPaused) {
@@ -619,18 +690,20 @@
             });
             
             // Speed control for TTS
-            speedBtn.addEventListener('click', function() {
-                currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
-                currentSpeed = speeds[currentSpeedIndex];
-                speedBtn.textContent = currentSpeed + 'x';
-                
-                // If playing, restart with new speed
-                if (isPlaying && !isPaused) {
-                    speechSynthesis.cancel();
-                    createUtterance();
-                    speechSynthesis.speak(utterance);
-                }
-            });
+            if (speedBtn) {
+                speedBtn.addEventListener('click', function() {
+                    currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+                    currentSpeed = speeds[currentSpeedIndex];
+                    speedBtn.textContent = currentSpeed + 'x';
+                    
+                    // If playing, restart with new speed
+                    if (isPlaying && !isPaused) {
+                        speechSynthesis.cancel();
+                        createUtterance();
+                        speechSynthesis.speak(utterance);
+                    }
+                });
+            }
             
             // Load voices
             if (speechSynthesis.onvoiceschanged !== undefined) {
