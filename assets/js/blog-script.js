@@ -358,6 +358,8 @@
         if (!player) return;
         
         const playBtn = document.getElementById('blog-tts-play');
+        if (!playBtn) return;
+        
         const playIcon = playBtn.querySelector('.play-icon');
         const pauseIcon = playBtn.querySelector('.pause-icon');
         const currentTimeEl = document.getElementById('blog-tts-current');
@@ -381,25 +383,34 @@
         
         // Update progress bar and handle
         function updateProgressUI(percent) {
-            progressBar.style.width = percent + '%';
+            if (progressBar) progressBar.style.width = percent + '%';
             if (progressHandle) progressHandle.style.left = percent + '%';
         }
         
         // Check if we have a real audio file
-        if (audioElement) {
+        if (audioElement && audioElement.querySelector('source')) {
             // ==================== REAL AUDIO MODE ====================
+            console.log('Audio player: Real audio mode');
             let isPlaying = false;
+            let isDragging = false;
             
             // Set duration when metadata is loaded
             audioElement.addEventListener('loadedmetadata', function() {
                 durationEl.textContent = formatTime(audioElement.duration);
             });
             
+            // Also try to get duration if already loaded
+            if (audioElement.duration && !isNaN(audioElement.duration)) {
+                durationEl.textContent = formatTime(audioElement.duration);
+            }
+            
             // Update progress during playback
             audioElement.addEventListener('timeupdate', function() {
-                const percent = (audioElement.currentTime / audioElement.duration) * 100;
-                updateProgressUI(percent);
-                currentTimeEl.textContent = formatTime(audioElement.currentTime);
+                if (!isDragging && audioElement.duration) {
+                    const percent = (audioElement.currentTime / audioElement.duration) * 100;
+                    updateProgressUI(percent);
+                    currentTimeEl.textContent = formatTime(audioElement.currentTime);
+                }
             });
             
             // Handle audio end
@@ -420,61 +431,91 @@
                     playIcon.style.display = 'block';
                     pauseIcon.style.display = 'none';
                 } else {
-                    audioElement.play();
+                    audioElement.play().catch(function(e) {
+                        console.error('Play error:', e);
+                    });
                     isPlaying = true;
                     playIcon.style.display = 'none';
                     pauseIcon.style.display = 'block';
                 }
             });
             
-            // Seek on progress bar click
-            progressContainer.addEventListener('click', function(e) {
-                const rect = progressContainer.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                const newTime = percent * audioElement.duration;
-                audioElement.currentTime = newTime;
-                updateProgressUI(percent * 100);
-            });
-            
-            // Drag to seek
-            let isDragging = false;
-            
-            progressContainer.addEventListener('mousedown', function(e) {
-                isDragging = true;
-                seek(e);
-            });
-            
-            document.addEventListener('mousemove', function(e) {
-                if (isDragging) {
-                    seek(e);
-                }
-            });
-            
-            document.addEventListener('mouseup', function() {
-                isDragging = false;
-            });
-            
-            function seek(e) {
+            // Seek function
+            function seekToPosition(e) {
+                if (!progressContainer || !audioElement.duration) return;
+                
                 const rect = progressContainer.getBoundingClientRect();
                 let percent = (e.clientX - rect.left) / rect.width;
                 percent = Math.max(0, Math.min(1, percent));
+                
                 const newTime = percent * audioElement.duration;
-                if (!isNaN(newTime)) {
+                if (!isNaN(newTime) && isFinite(newTime)) {
                     audioElement.currentTime = newTime;
                     updateProgressUI(percent * 100);
+                    currentTimeEl.textContent = formatTime(newTime);
                 }
             }
             
+            // Click on progress bar to seek
+            if (progressContainer) {
+                progressContainer.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    seekToPosition(e);
+                });
+                
+                // Drag to seek - Mouse events
+                progressContainer.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    isDragging = true;
+                    seekToPosition(e);
+                    document.body.style.userSelect = 'none';
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (isDragging) {
+                        e.preventDefault();
+                        seekToPosition(e);
+                    }
+                });
+                
+                document.addEventListener('mouseup', function() {
+                    if (isDragging) {
+                        isDragging = false;
+                        document.body.style.userSelect = '';
+                    }
+                });
+                
+                // Touch events for mobile
+                progressContainer.addEventListener('touchstart', function(e) {
+                    isDragging = true;
+                    const touch = e.touches[0];
+                    seekToPosition({ clientX: touch.clientX });
+                }, { passive: true });
+                
+                document.addEventListener('touchmove', function(e) {
+                    if (isDragging && e.touches[0]) {
+                        seekToPosition({ clientX: e.touches[0].clientX });
+                    }
+                }, { passive: true });
+                
+                document.addEventListener('touchend', function() {
+                    isDragging = false;
+                });
+            }
+            
             // Speed control
-            speedBtn.addEventListener('click', function() {
-                currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
-                const speed = speeds[currentSpeedIndex];
-                audioElement.playbackRate = speed;
-                speedBtn.textContent = speed + 'x';
-            });
+            if (speedBtn) {
+                speedBtn.addEventListener('click', function() {
+                    currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+                    const speed = speeds[currentSpeedIndex];
+                    audioElement.playbackRate = speed;
+                    speedBtn.textContent = speed + 'x';
+                });
+            }
             
         } else if (contentEl && 'speechSynthesis' in window) {
             // ==================== TEXT-TO-SPEECH MODE ====================
+            console.log('Audio player: TTS mode');
             
             // Get text content
             let text = contentEl.textContent.trim();
