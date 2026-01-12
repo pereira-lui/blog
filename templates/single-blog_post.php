@@ -127,14 +127,17 @@ if ($popular_query->post_count < 3) {
         </div>
         <?php endif; ?>
         
-        <!-- Player: Ouvir a Notícia (Text-to-Speech) -->
+        <?php 
+        // Get audio URL from post meta (if exists)
+        $post_audio_url = get_post_meta(get_the_ID(), '_blog_post_audio_url', true);
+        ?>
+        
+        <!-- Player: Ouvir a Notícia -->
         <div class="blog-listen-section">
             <div class="blog-container blog-container-narrow">
-                <div class="blog-listen-player" id="blog-tts-player">
+                <div class="blog-listen-player" id="blog-tts-player" data-audio-url="<?php echo esc_url($post_audio_url); ?>">
                     <div class="blog-listen-icon">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
-                        </svg>
+                        <img src="https://www2.parquedasaves.com.br/wp-content/uploads/2026/01/Ellipse-1.png" alt="<?php _e('Ouvir', 'blog-pda'); ?>" width="48" height="48">
                     </div>
                     <div class="blog-listen-content">
                         <h4 class="blog-listen-title"><?php _e('Ouvir a notícia:', 'blog-pda'); ?> <?php the_title(); ?></h4>
@@ -151,14 +154,23 @@ if ($popular_query->post_count < 3) {
                             <span class="blog-listen-time">
                                 <span class="blog-listen-current" id="blog-tts-current">00:00</span> / <span class="blog-listen-duration" id="blog-tts-duration">--:--</span>
                             </span>
+                            <div class="blog-listen-speed">
+                                <button class="blog-listen-speed-btn" id="blog-tts-speed" aria-label="<?php _e('Velocidade', 'blog-pda'); ?>">1x</button>
+                            </div>
                         </div>
                         <div class="blog-listen-progress" id="blog-tts-progress-container">
                             <div class="blog-listen-progress-bar" id="blog-tts-progress"></div>
-                            <div class="blog-listen-progress-handle"></div>
+                            <div class="blog-listen-progress-handle" id="blog-tts-handle"></div>
                         </div>
                     </div>
                 </div>
-                <!-- Hidden content for TTS -->
+                <!-- Audio element for real audio files -->
+                <?php if (!empty($post_audio_url)) : ?>
+                <audio id="blog-audio-element" preload="metadata" style="display: none;">
+                    <source src="<?php echo esc_url($post_audio_url); ?>" type="audio/mpeg">
+                </audio>
+                <?php endif; ?>
+                <!-- Hidden content for TTS fallback -->
                 <div id="blog-tts-content" style="display: none;">
                     <?php echo wp_strip_all_tags(get_the_content()); ?>
                 </div>

@@ -1386,7 +1386,13 @@ body.tax-blog_tag .site-header {
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    opacity: 0.9 !important;
+}
+
+.blog-listen-icon img {
+    width: 48px !important;
+    height: 48px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
 }
 
 .blog-listen-content {
@@ -1405,7 +1411,7 @@ body.tax-blog_tag .site-header {
 .blog-listen-controls {
     display: flex !important;
     align-items: center !important;
-    gap: 10px !important;
+    gap: 12px !important;
     margin-bottom: 12px !important;
 }
 
@@ -1424,7 +1430,7 @@ body.tax-blog_tag .site-header {
     transition: var(--blog-transition) !important;
 }
 
-.blog-listen-play-btn: hover {
+.blog-listen-play-btn:hover {
     transform: scale(1.1) !important;
 }
 
@@ -1440,11 +1446,33 @@ body.tax-blog_tag .site-header {
     opacity: 0.9 !important;
 }
 
+.blog-listen-speed {
+    flex: 0 0 auto !important;
+    margin-left: auto !important;
+}
+
+.blog-listen-speed-btn {
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: none !important;
+    color: #FFFFFF !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
+    padding: 4px 10px !important;
+    border-radius: 12px !important;
+    cursor: pointer !important;
+    transition: var(--blog-transition) !important;
+    min-width: 42px !important;
+}
+
+.blog-listen-speed-btn:hover {
+    background: rgba(255, 255, 255, 0.3) !important;
+}
+
 .blog-listen-progress {
     width: 100% !important;
-    height: 3px !important;
+    height: 6px !important;
     background: rgba(255, 255, 255, 0.3) !important;
-    border-radius: 2px !important;
+    border-radius: 3px !important;
     cursor: pointer !important;
     position: relative !important;
 }
@@ -1456,8 +1484,9 @@ body.tax-blog_tag .site-header {
     height: 100% !important;
     width: 0% !important;
     background: #FFFFFF !important;
-    border-radius: 2px !important;
-    transition: width 0.1s linear !important;
+    border-radius: 3px !important;
+    transition: none !important;
+    pointer-events: none !important;
 }
 
 .blog-listen-progress-handle {
@@ -1465,12 +1494,17 @@ body.tax-blog_tag .site-header {
     top: 50% !important;
     left: 0% !important;
     transform: translate(-50%, -50%) !important;
-    width: 10px !important;
-    height: 10px !important;
+    width: 14px !important;
+    height: 14px !important;
     background: #FFFFFF !important;
     border-radius: 50% !important;
-    transition: left 0.1s linear !important;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    transition: none !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+    pointer-events: none !important;
+}
+
+.blog-listen-progress:hover .blog-listen-progress-handle {
+    transform: translate(-50%, -50%) scale(1.2) !important;
 }
 
 .blog-single-content {

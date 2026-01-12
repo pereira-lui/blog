@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 2.3.7
+ * Version: 2.4.0
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '2.3.7');
+define('BLOG_PDA_VERSION', '2.4.0');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -103,7 +103,9 @@ final class Blog_PDA {
         
         // Add featured post meta box
         add_action('add_meta_boxes', [$this, 'add_featured_meta_box']);
+        add_action('add_meta_boxes', [$this, 'add_audio_meta_box']);
         add_action('save_post', [$this, 'save_featured_meta']);
+        add_action('save_post', [$this, 'save_audio_meta']);
         
         // Filter content for classic editor compatibility
         add_filter('the_content', [$this, 'filter_blog_content'], 20);
@@ -2452,6 +2454,86 @@ final class Blog_PDA {
             <?php _e('Marcar como post em destaque na página do blog', 'blog-pda'); ?>
         </label>
         <?php
+    }
+
+    /**
+     * Add audio meta box for "Ouvir a Notícia"
+     */
+    public function add_audio_meta_box() {
+        add_meta_box(
+            'blog_pda_audio',
+            __('Áudio da Notícia', 'blog-pda'),
+            [$this, 'audio_meta_box_callback'],
+            'blog_post',
+            'side',
+            'default'
+        );
+    }
+
+    /**
+     * Audio meta box callback
+     */
+    public function audio_meta_box_callback($post) {
+        wp_nonce_field('blog_pda_audio_nonce', 'blog_pda_audio_nonce');
+        $audio_url = get_post_meta($post->ID, '_blog_post_audio_url', true);
+        ?>
+        <p class="description"><?php _e('Adicione um arquivo de áudio MP3 para o player "Ouvir a Notícia". Se vazio, será usado Text-to-Speech.', 'blog-pda'); ?></p>
+        <div style="margin-top: 10px;">
+            <input type="url" id="blog_post_audio_url" name="blog_post_audio_url" value="<?php echo esc_url($audio_url); ?>" placeholder="<?php _e('URL do áudio MP3', 'blog-pda'); ?>" style="width: 100%;">
+            <button type="button" class="button blog-upload-audio-btn" style="margin-top: 8px;">
+                <?php _e('Upload Áudio', 'blog-pda'); ?>
+            </button>
+        </div>
+        <?php if (!empty($audio_url)) : ?>
+        <div style="margin-top: 10px;">
+            <audio controls style="width: 100%;">
+                <source src="<?php echo esc_url($audio_url); ?>" type="audio/mpeg">
+            </audio>
+        </div>
+        <?php endif; ?>
+        <script>
+        jQuery(document).ready(function($) {
+            $('.blog-upload-audio-btn').on('click', function(e) {
+                e.preventDefault();
+                var button = $(this);
+                var frame = wp.media({
+                    title: '<?php _e('Selecionar Áudio', 'blog-pda'); ?>',
+                    button: { text: '<?php _e('Usar este áudio', 'blog-pda'); ?>' },
+                    library: { type: 'audio' },
+                    multiple: false
+                });
+                frame.on('select', function() {
+                    var attachment = frame.state().get('selection').first().toJSON();
+                    $('#blog_post_audio_url').val(attachment.url);
+                });
+                frame.open();
+            });
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * Save audio meta
+     */
+    public function save_audio_meta($post_id) {
+        if (!isset($_POST['blog_pda_audio_nonce']) || !wp_verify_nonce($_POST['blog_pda_audio_nonce'], 'blog_pda_audio_nonce')) {
+            return;
+        }
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+        if (!current_user_can('edit_post', $post_id)) {
+            return;
+        }
+        if (isset($_POST['blog_post_audio_url'])) {
+            $audio_url = esc_url_raw($_POST['blog_post_audio_url']);
+            if (!empty($audio_url)) {
+                update_post_meta($post_id, '_blog_post_audio_url', $audio_url);
+            } else {
+                delete_post_meta($post_id, '_blog_post_audio_url');
+            }
+        }
     }
 
     /**

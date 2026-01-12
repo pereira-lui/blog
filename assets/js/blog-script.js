@@ -348,20 +348,14 @@
     }
 
     /**
-     * Initialize Listen Player (Ouvir a Notícia) - Text-to-Speech
+     * Initialize Listen Player (Ouvir a Notícia) - Audio or Text-to-Speech
      */
     function initListenPlayer() {
         const player = document.getElementById('blog-tts-player');
         const contentEl = document.getElementById('blog-tts-content');
+        const audioElement = document.getElementById('blog-audio-element');
         
-        if (!player || !contentEl) return;
-        
-        // Check if Speech Synthesis is supported
-        if (!('speechSynthesis' in window)) {
-            player.style.display = 'none';
-            console.log('Text-to-Speech não suportado neste navegador');
-            return;
-        }
+        if (!player) return;
         
         const playBtn = document.getElementById('blog-tts-play');
         const playIcon = playBtn.querySelector('.play-icon');
@@ -369,25 +363,13 @@
         const currentTimeEl = document.getElementById('blog-tts-current');
         const durationEl = document.getElementById('blog-tts-duration');
         const progressBar = document.getElementById('blog-tts-progress');
-        const progressHandle = player.querySelector('.blog-listen-progress-handle');
+        const progressHandle = document.getElementById('blog-tts-handle');
         const progressContainer = document.getElementById('blog-tts-progress-container');
+        const speedBtn = document.getElementById('blog-tts-speed');
         
-        // Get text content
-        let text = contentEl.textContent.trim();
-        // Clean up text - remove extra whitespace
-        text = text.replace(/\s+/g, ' ').trim();
-        
-        let utterance = null;
-        let isPlaying = false;
-        let isPaused = false;
-        let startTime = 0;
-        let elapsedTime = 0;
-        let estimatedDuration = 0;
-        let progressInterval = null;
-        
-        // Estimate duration based on average speech rate (150 words per minute)
-        const wordCount = text.split(/\s+/).length;
-        estimatedDuration = Math.ceil((wordCount / 150) * 60); // in seconds
+        // Speed options
+        const speeds = [0.5, 0.75, 1, 1.25, 1.5, 2];
+        let currentSpeedIndex = 2; // Default 1x
         
         // Format time helper
         function formatTime(seconds) {
@@ -397,112 +379,232 @@
             return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
         }
         
-        // Set initial duration estimate
-        durationEl.textContent = formatTime(estimatedDuration);
-        
-        // Update progress
-        function updateProgress() {
-            if (!isPlaying || isPaused) return;
-            
-            elapsedTime = (Date.now() - startTime) / 1000;
-            const percent = Math.min((elapsedTime / estimatedDuration) * 100, 100);
+        // Update progress bar and handle
+        function updateProgressUI(percent) {
             progressBar.style.width = percent + '%';
             if (progressHandle) progressHandle.style.left = percent + '%';
-            currentTimeEl.textContent = formatTime(elapsedTime);
         }
         
-        // Get Portuguese voice
-        function getPortugueseVoice() {
-            const voices = speechSynthesis.getVoices();
-            // Try to find Brazilian Portuguese first
-            let voice = voices.find(v => v.lang === 'pt-BR');
-            // Fallback to any Portuguese
-            if (!voice) voice = voices.find(v => v.lang.startsWith('pt'));
-            // Fallback to default
-            return voice || voices[0];
-        }
-        
-        // Create and configure utterance
-        function createUtterance() {
-            utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'pt-BR';
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-            utterance.volume = 1.0;
+        // Check if we have a real audio file
+        if (audioElement) {
+            // ==================== REAL AUDIO MODE ====================
+            let isPlaying = false;
             
-            const voice = getPortugueseVoice();
-            if (voice) utterance.voice = voice;
+            // Set duration when metadata is loaded
+            audioElement.addEventListener('loadedmetadata', function() {
+                durationEl.textContent = formatTime(audioElement.duration);
+            });
             
-            utterance.onstart = function() {
-                isPlaying = true;
-                isPaused = false;
-                startTime = Date.now();
-                progressInterval = setInterval(updateProgress, 100);
-            };
+            // Update progress during playback
+            audioElement.addEventListener('timeupdate', function() {
+                const percent = (audioElement.currentTime / audioElement.duration) * 100;
+                updateProgressUI(percent);
+                currentTimeEl.textContent = formatTime(audioElement.currentTime);
+            });
             
-            utterance.onend = function() {
-                resetPlayer();
-            };
-            
-            utterance.onerror = function(event) {
-                console.error('TTS Error:', event.error);
-                resetPlayer();
-            };
-        }
-        
-        // Reset player to initial state
-        function resetPlayer() {
-            isPlaying = false;
-            isPaused = false;
-            elapsedTime = 0;
-            playIcon.style.display = 'block';
-            pauseIcon.style.display = 'none';
-            progressBar.style.width = '0%';
-            if (progressHandle) progressHandle.style.left = '0%';
-            currentTimeEl.textContent = '00:00';
-            if (progressInterval) {
-                clearInterval(progressInterval);
-                progressInterval = null;
-            }
-        }
-        
-        // Play/Pause toggle
-        playBtn.addEventListener('click', function() {
-            if (!isPlaying && !isPaused) {
-                // Start new speech
-                createUtterance();
-                speechSynthesis.speak(utterance);
-                playIcon.style.display = 'none';
-                pauseIcon.style.display = 'block';
-            } else if (isPlaying && !isPaused) {
-                // Pause
-                speechSynthesis.pause();
-                isPaused = true;
-                if (progressInterval) clearInterval(progressInterval);
+            // Handle audio end
+            audioElement.addEventListener('ended', function() {
+                isPlaying = false;
                 playIcon.style.display = 'block';
                 pauseIcon.style.display = 'none';
-            } else if (isPaused) {
-                // Resume
-                speechSynthesis.resume();
-                isPaused = false;
-                startTime = Date.now() - (elapsedTime * 1000);
-                progressInterval = setInterval(updateProgress, 100);
-                playIcon.style.display = 'none';
-                pauseIcon.style.display = 'block';
+                updateProgressUI(0);
+                currentTimeEl.textContent = '00:00';
+                audioElement.currentTime = 0;
+            });
+            
+            // Play/Pause toggle
+            playBtn.addEventListener('click', function() {
+                if (isPlaying) {
+                    audioElement.pause();
+                    isPlaying = false;
+                    playIcon.style.display = 'block';
+                    pauseIcon.style.display = 'none';
+                } else {
+                    audioElement.play();
+                    isPlaying = true;
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                }
+            });
+            
+            // Seek on progress bar click
+            progressContainer.addEventListener('click', function(e) {
+                const rect = progressContainer.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                const newTime = percent * audioElement.duration;
+                audioElement.currentTime = newTime;
+                updateProgressUI(percent * 100);
+            });
+            
+            // Drag to seek
+            let isDragging = false;
+            
+            progressContainer.addEventListener('mousedown', function(e) {
+                isDragging = true;
+                seek(e);
+            });
+            
+            document.addEventListener('mousemove', function(e) {
+                if (isDragging) {
+                    seek(e);
+                }
+            });
+            
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+            });
+            
+            function seek(e) {
+                const rect = progressContainer.getBoundingClientRect();
+                let percent = (e.clientX - rect.left) / rect.width;
+                percent = Math.max(0, Math.min(1, percent));
+                const newTime = percent * audioElement.duration;
+                if (!isNaN(newTime)) {
+                    audioElement.currentTime = newTime;
+                    updateProgressUI(percent * 100);
+                }
             }
-        });
-        
-        // Load voices (they load async in some browsers)
-        if (speechSynthesis.onvoiceschanged !== undefined) {
-            speechSynthesis.onvoiceschanged = function() {
-                // Voices loaded
-            };
+            
+            // Speed control
+            speedBtn.addEventListener('click', function() {
+                currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+                const speed = speeds[currentSpeedIndex];
+                audioElement.playbackRate = speed;
+                speedBtn.textContent = speed + 'x';
+            });
+            
+        } else if (contentEl && 'speechSynthesis' in window) {
+            // ==================== TEXT-TO-SPEECH MODE ====================
+            
+            // Get text content
+            let text = contentEl.textContent.trim();
+            text = text.replace(/\s+/g, ' ').trim();
+            
+            let utterance = null;
+            let isPlaying = false;
+            let isPaused = false;
+            let startTime = 0;
+            let elapsedTime = 0;
+            let estimatedDuration = 0;
+            let progressInterval = null;
+            let currentSpeed = 1;
+            
+            // Estimate duration based on average speech rate
+            const wordCount = text.split(/\s+/).length;
+            estimatedDuration = Math.ceil((wordCount / 150) * 60);
+            durationEl.textContent = formatTime(estimatedDuration);
+            
+            // Update progress for TTS
+            function updateTTSProgress() {
+                if (!isPlaying || isPaused) return;
+                elapsedTime = (Date.now() - startTime) / 1000 * currentSpeed;
+                const percent = Math.min((elapsedTime / estimatedDuration) * 100, 100);
+                updateProgressUI(percent);
+                currentTimeEl.textContent = formatTime(elapsedTime);
+            }
+            
+            // Get Portuguese voice
+            function getPortugueseVoice() {
+                const voices = speechSynthesis.getVoices();
+                let voice = voices.find(v => v.lang === 'pt-BR');
+                if (!voice) voice = voices.find(v => v.lang.startsWith('pt'));
+                return voice || voices[0];
+            }
+            
+            // Create utterance
+            function createUtterance() {
+                utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'pt-BR';
+                utterance.rate = currentSpeed;
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+                
+                const voice = getPortugueseVoice();
+                if (voice) utterance.voice = voice;
+                
+                utterance.onstart = function() {
+                    isPlaying = true;
+                    isPaused = false;
+                    startTime = Date.now();
+                    progressInterval = setInterval(updateTTSProgress, 100);
+                };
+                
+                utterance.onend = function() {
+                    resetTTSPlayer();
+                };
+                
+                utterance.onerror = function(event) {
+                    console.error('TTS Error:', event.error);
+                    resetTTSPlayer();
+                };
+            }
+            
+            // Reset TTS player
+            function resetTTSPlayer() {
+                isPlaying = false;
+                isPaused = false;
+                elapsedTime = 0;
+                playIcon.style.display = 'block';
+                pauseIcon.style.display = 'none';
+                updateProgressUI(0);
+                currentTimeEl.textContent = '00:00';
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+            }
+            
+            // Play/Pause toggle
+            playBtn.addEventListener('click', function() {
+                if (!isPlaying && !isPaused) {
+                    createUtterance();
+                    speechSynthesis.speak(utterance);
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                } else if (isPlaying && !isPaused) {
+                    speechSynthesis.pause();
+                    isPaused = true;
+                    if (progressInterval) clearInterval(progressInterval);
+                    playIcon.style.display = 'block';
+                    pauseIcon.style.display = 'none';
+                } else if (isPaused) {
+                    speechSynthesis.resume();
+                    isPaused = false;
+                    startTime = Date.now() - (elapsedTime * 1000 / currentSpeed);
+                    progressInterval = setInterval(updateTTSProgress, 100);
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
+                }
+            });
+            
+            // Speed control for TTS
+            speedBtn.addEventListener('click', function() {
+                currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
+                currentSpeed = speeds[currentSpeedIndex];
+                speedBtn.textContent = currentSpeed + 'x';
+                
+                // If playing, restart with new speed
+                if (isPlaying && !isPaused) {
+                    speechSynthesis.cancel();
+                    createUtterance();
+                    speechSynthesis.speak(utterance);
+                }
+            });
+            
+            // Load voices
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = function() {};
+            }
+            
+            // Stop speech when leaving page
+            window.addEventListener('beforeunload', function() {
+                speechSynthesis.cancel();
+            });
+            
+        } else {
+            // No audio and no TTS support
+            player.style.display = 'none';
         }
-        
-        // Stop speech when leaving page
-        window.addEventListener('beforeunload', function() {
-            speechSynthesis.cancel();
-        });
     }
 
 })();
