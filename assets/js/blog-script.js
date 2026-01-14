@@ -518,33 +518,53 @@
             console.log('Audio player: TTS mode initialized');
             
             // Get text content
-            let text = contentEl.textContent.trim();
-            text = text.replace(/\s+/g, ' ').trim();
+            let fullText = contentEl.textContent.trim();
+            fullText = fullText.replace(/\s+/g, ' ').trim();
+            
+            // Split text into words for seeking
+            const words = fullText.split(/\s+/);
+            const totalWords = words.length;
             
             let utterance = null;
             let isPlaying = false;
             let isPaused = false;
             let startTime = 0;
-            let elapsedTime = 0;
+            let currentWordIndex = 0;
             let estimatedDuration = 0;
             let progressInterval = null;
             let currentSpeed = 1;
             let isDraggingTTS = false;
             
-            // Estimate duration based on average speech rate (words per minute)
-            const wordCount = text.split(/\s+/).length;
-            estimatedDuration = Math.ceil((wordCount / 150) * 60);
+            // Estimate duration based on average speech rate (150 words per minute at 1x speed)
+            estimatedDuration = Math.ceil((totalWords / 150) * 60);
             durationEl.textContent = formatTime(estimatedDuration);
-            console.log('TTS: Word count:', wordCount, 'Estimated duration:', estimatedDuration);
+            console.log('TTS: Total words:', totalWords, 'Estimated duration:', estimatedDuration + 's');
             
-            // Update progress for TTS
+            // Calculate current progress percentage
+            function getCurrentProgress() {
+                if (!isPlaying || isPaused) return (currentWordIndex / totalWords) * 100;
+                const elapsed = (Date.now() - startTime) / 1000;
+                const wordsSpoken = Math.floor((elapsed * 150 * currentSpeed) / 60);
+                const totalSpoken = currentWordIndex + wordsSpoken;
+                return Math.min((totalSpoken / totalWords) * 100, 100);
+            }
+            
+            // Calculate current time in seconds
+            function getCurrentTime() {
+                const progress = getCurrentProgress() / 100;
+                return progress * estimatedDuration;
+            }
+            
+            // Update progress display
             function updateTTSProgress() {
                 if (!isPlaying || isPaused || isDraggingTTS) return;
-                elapsedTime = (Date.now() - startTime) / 1000;
-                const adjustedTime = elapsedTime * currentSpeed;
-                const percent = Math.min((adjustedTime / estimatedDuration) * 100, 100);
+                const percent = getCurrentProgress();
                 updateProgressUI(percent);
-                currentTimeEl.textContent = formatTime(adjustedTime);
+                currentTimeEl.textContent = formatTime(getCurrentTime());
+                
+                if (percent >= 100) {
+                    resetTTSPlayer();
+                }
             }
             
             // Get Portuguese voice
@@ -555,9 +575,27 @@
                 return voice || voices[0];
             }
             
-            // Create utterance
-            function createUtterance(fromElapsed) {
-                utterance = new SpeechSynthesisUtterance(text);
+            // Start speaking from a specific word index
+            function speakFromIndex(wordIndex) {
+                // Cancel any ongoing speech
+                speechSynthesis.cancel();
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+                
+                // Get remaining text from word index
+                currentWordIndex = Math.max(0, Math.min(wordIndex, totalWords - 1));
+                const remainingText = words.slice(currentWordIndex).join(' ');
+                
+                if (!remainingText.trim()) {
+                    resetTTSPlayer();
+                    return;
+                }
+                
+                console.log('TTS: Speaking from word', currentWordIndex, 'of', totalWords);
+                
+                utterance = new SpeechSynthesisUtterance(remainingText);
                 utterance.lang = 'pt-BR';
                 utterance.rate = currentSpeed;
                 utterance.pitch = 1.0;
@@ -567,35 +605,37 @@
                 if (voice) utterance.voice = voice;
                 
                 utterance.onstart = function() {
-                    console.log('TTS: Started speaking');
+                    console.log('TTS: Started speaking at speed', currentSpeed);
                     isPlaying = true;
                     isPaused = false;
-                    if (fromElapsed) {
-                        startTime = Date.now() - (fromElapsed * 1000 / currentSpeed);
-                    } else {
-                        startTime = Date.now();
-                    }
+                    startTime = Date.now();
                     progressInterval = setInterval(updateTTSProgress, 100);
+                    playIcon.style.display = 'none';
+                    pauseIcon.style.display = 'block';
                 };
                 
                 utterance.onend = function() {
-                    console.log('TTS: Ended speaking');
+                    console.log('TTS: Finished speaking');
                     resetTTSPlayer();
                 };
                 
                 utterance.onerror = function(event) {
-                    console.error('TTS Error:', event.error);
-                    if (event.error !== 'interrupted') {
+                    if (event.error !== 'interrupted' && event.error !== 'canceled') {
+                        console.error('TTS Error:', event.error);
                         resetTTSPlayer();
                     }
                 };
+                
+                speechSynthesis.speak(utterance);
             }
             
             // Reset TTS player
             function resetTTSPlayer() {
+                speechSynthesis.cancel();
                 isPlaying = false;
                 isPaused = false;
-                elapsedTime = 0;
+                currentWordIndex = 0;
+                startTime = 0;
                 playIcon.style.display = 'block';
                 pauseIcon.style.display = 'none';
                 updateProgressUI(0);
@@ -606,136 +646,139 @@
                 }
             }
             
-            // Seek function for TTS
-            function seekToPositionTTS(clientX) {
+            // Seek to position (percentage)
+            function seekToPercent(percent) {
+                percent = Math.max(0, Math.min(1, percent));
+                const targetWordIndex = Math.floor(percent * totalWords);
+                
+                console.log('TTS: Seeking to', Math.round(percent * 100) + '%', 'word', targetWordIndex);
+                
+                // Update visual immediately
+                updateProgressUI(percent * 100);
+                currentTimeEl.textContent = formatTime(percent * estimatedDuration);
+                
+                // If playing, restart from new position
+                if (isPlaying && !isPaused) {
+                    speakFromIndex(targetWordIndex);
+                } else {
+                    currentWordIndex = targetWordIndex;
+                }
+            }
+            
+            // Handle click/drag on progress bar
+            function handleProgressInteraction(clientX) {
                 if (!progressContainer) return;
                 
                 const rect = progressContainer.getBoundingClientRect();
-                let percent = (clientX - rect.left) / rect.width;
-                percent = Math.max(0, Math.min(1, percent));
-                
-                console.log('TTS Seek: percent =', percent);
-                
-                // Update visual position
-                updateProgressUI(percent * 100);
-                elapsedTime = (percent * estimatedDuration) / currentSpeed;
-                currentTimeEl.textContent = formatTime(percent * estimatedDuration);
+                const percent = (clientX - rect.left) / rect.width;
+                seekToPercent(percent);
             }
             
-            // Progress bar interactions for TTS
+            // Progress bar interactions
             if (progressContainer) {
                 console.log('TTS: Setting up progress bar events');
-                
                 progressContainer.style.cursor = 'pointer';
                 
                 progressContainer.addEventListener('click', function(e) {
-                    console.log('TTS: Progress bar clicked');
                     e.preventDefault();
                     e.stopPropagation();
-                    seekToPositionTTS(e.clientX);
+                    handleProgressInteraction(e.clientX);
                 });
                 
                 progressContainer.addEventListener('mousedown', function(e) {
-                    console.log('TTS: Progress bar mousedown');
                     e.preventDefault();
                     e.stopPropagation();
                     isDraggingTTS = true;
-                    seekToPositionTTS(e.clientX);
+                    handleProgressInteraction(e.clientX);
                     document.body.style.userSelect = 'none';
                 });
                 
                 document.addEventListener('mousemove', function(e) {
                     if (isDraggingTTS) {
                         e.preventDefault();
-                        seekToPositionTTS(e.clientX);
+                        handleProgressInteraction(e.clientX);
                     }
                 });
                 
                 document.addEventListener('mouseup', function() {
                     if (isDraggingTTS) {
-                        console.log('TTS: Drag ended');
                         isDraggingTTS = false;
                         document.body.style.userSelect = '';
-                        // Update startTime based on new position
-                        if (isPlaying && !isPaused) {
-                            startTime = Date.now() - (elapsedTime * 1000);
-                        }
                     }
                 });
                 
                 // Touch events
                 progressContainer.addEventListener('touchstart', function(e) {
-                    console.log('TTS: Touch start');
                     isDraggingTTS = true;
                     if (e.touches[0]) {
-                        seekToPositionTTS(e.touches[0].clientX);
+                        handleProgressInteraction(e.touches[0].clientX);
                     }
                 }, { passive: true });
                 
                 document.addEventListener('touchmove', function(e) {
                     if (isDraggingTTS && e.touches[0]) {
-                        seekToPositionTTS(e.touches[0].clientX);
+                        handleProgressInteraction(e.touches[0].clientX);
                     }
                 }, { passive: true });
                 
                 document.addEventListener('touchend', function() {
-                    if (isDraggingTTS) {
-                        isDraggingTTS = false;
-                        if (isPlaying && !isPaused) {
-                            startTime = Date.now() - (elapsedTime * 1000);
-                        }
-                    }
+                    isDraggingTTS = false;
                 });
-            } else {
-                console.error('TTS: Progress container not found!');
             }
             
             // Play/Pause toggle
             playBtn.addEventListener('click', function() {
                 console.log('TTS: Play button clicked, isPlaying:', isPlaying, 'isPaused:', isPaused);
+                
                 if (!isPlaying && !isPaused) {
-                    createUtterance(0);
-                    speechSynthesis.speak(utterance);
-                    playIcon.style.display = 'none';
-                    pauseIcon.style.display = 'block';
+                    // Start from beginning or current position
+                    speakFromIndex(currentWordIndex);
                 } else if (isPlaying && !isPaused) {
+                    // Pause
                     speechSynthesis.pause();
                     isPaused = true;
+                    // Save current position
+                    const elapsed = (Date.now() - startTime) / 1000;
+                    const wordsSpoken = Math.floor((elapsed * 150 * currentSpeed) / 60);
+                    currentWordIndex = Math.min(currentWordIndex + wordsSpoken, totalWords);
                     if (progressInterval) clearInterval(progressInterval);
                     playIcon.style.display = 'block';
                     pauseIcon.style.display = 'none';
                 } else if (isPaused) {
+                    // Resume
                     speechSynthesis.resume();
                     isPaused = false;
-                    startTime = Date.now() - (elapsedTime * 1000);
+                    startTime = Date.now();
                     progressInterval = setInterval(updateTTSProgress, 100);
                     playIcon.style.display = 'none';
                     pauseIcon.style.display = 'block';
                 }
             });
             
-            // Speed control for TTS - change speed without restarting
+            // Speed control - restart from current position with new speed
             if (speedBtn) {
                 speedBtn.addEventListener('click', function() {
-                    // Save current progress
-                    const currentProgress = elapsedTime * currentSpeed;
+                    // Calculate current word position
+                    let targetWordIndex = currentWordIndex;
+                    if (isPlaying && !isPaused) {
+                        const elapsed = (Date.now() - startTime) / 1000;
+                        const wordsSpoken = Math.floor((elapsed * 150 * currentSpeed) / 60);
+                        targetWordIndex = Math.min(currentWordIndex + wordsSpoken, totalWords);
+                    }
                     
+                    // Change speed
                     currentSpeedIndex = (currentSpeedIndex + 1) % speeds.length;
                     currentSpeed = speeds[currentSpeedIndex];
                     speedBtn.textContent = currentSpeed + 'x';
                     
-                    console.log('TTS: Speed changed to', currentSpeed);
+                    console.log('TTS: Speed changed to', currentSpeed + 'x, continuing from word', targetWordIndex);
                     
-                    // Recalculate elapsed time for new speed
-                    elapsedTime = currentProgress / currentSpeed;
-                    
-                    // Update startTime to maintain position
+                    // Restart from current position with new speed
                     if (isPlaying && !isPaused) {
-                        startTime = Date.now() - (elapsedTime * 1000);
+                        speakFromIndex(targetWordIndex);
+                    } else {
+                        currentWordIndex = targetWordIndex;
                     }
-                    
-                    // Note: TTS doesn't support changing speed mid-speech
-                    // The visual progress will adjust but audio continues at original speed
                 });
             }
             
