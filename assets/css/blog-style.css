@@ -1511,7 +1511,7 @@ body.tax-blog_tag .site-header {
 }
 
 .blog-content-body {
-    font-size: 18px !important;
+    font-size: 15px !important;
     line-height: 1.8 !important;
     color: var(--blog-text-color) !important;
 }
@@ -1536,14 +1536,18 @@ body.tax-blog_tag .site-header {
 
 .blog-content-body img {
     max-width: 100% !important;
-    height: auto !important;
+    height: 600px !important;
+    width: 100%;
+    object-position: center;
+    object-fit: cover;
     border-radius: var(--blog-radius) !important;
     margin: 24px 0 !important;
 }
 
 .blog-content-body .aligncenter {
     display: block !important;
-    margin: 32px auto !important;
+    margin: 32px 0 32px 0 !important;
+    width: 100% !important;
 }
 
 .blog-content-body .alignleft {
