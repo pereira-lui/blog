@@ -120,7 +120,7 @@ if ($popular_query->post_count < 3) {
         <!-- Imagem Destacada -->
         <?php if (has_post_thumbnail()) : ?>
         <div class="blog-single-featured-image">
-            <div class="blog-container-wide">
+            <div class="blog-container">
                 <?php the_post_thumbnail('full'); ?>
                 <p class="blog-featured-image-caption"><?php echo wp_strip_all_tags(get_the_excerpt()); ?></p>
             </div>
