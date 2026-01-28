@@ -1703,7 +1703,7 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                     }
                     
                     new Swiper('#bpw-carousel-<?php echo esc_js($widget_id); ?>', {
-                        slidesPerView: <?php echo floatval($slides_per_view_mobile); ?>,
+                        slidesPerView: 'auto',
                         spaceBetween: <?php echo intval($space_between); ?>,
                         loop: <?php echo $loop ? 'true' : 'false'; ?>,
                         <?php if ($autoplay) : ?>
@@ -1716,7 +1716,6 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                         <?php if ($show_nav) : ?>
                         navigation: {
                             nextEl: '#bpw-next-<?php echo esc_js($widget_id); ?>',
-                            prevEl: '#bpw-prev-<?php echo esc_js($widget_id); ?>',
                         },
                         <?php endif; ?>
                         <?php if ($show_dots) : ?>
@@ -1725,14 +1724,6 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                             clickable: true,
                         },
                         <?php endif; ?>
-                        breakpoints: {
-                            768: {
-                                slidesPerView: <?php echo floatval($slides_per_view_tablet); ?>,
-                            },
-                            1024: {
-                                slidesPerView: <?php echo floatval($slides_per_view); ?>,
-                            },
-                        },
                     });
                 }
                 
@@ -2037,17 +2028,26 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             }
         }
         
-        /* Carousel Styles */
+        /* Carousel Styles - Grudado à direita */
         .bpw-carousel-wrapper {
             position: relative;
+            padding-left: calc((100% - 1200px) / 2 + 24px);
+            padding-right: 0;
+            overflow: visible;
         }
         
         .bpw-carousel {
-            overflow: hidden;
+            overflow: visible;
+            padding: 10px 0;
+        }
+        
+        .bpw-carousel .swiper-wrapper {
+            align-items: stretch;
         }
         
         .bpw-carousel .swiper-slide {
             height: auto;
+            width: auto;
         }
         
         .bpw-carousel .bpw-card {
@@ -2059,19 +2059,35 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             position: relative;
             border-radius: 16px;
             overflow: hidden;
+            width: 280px;
+            min-width: 260px;
+            max-width: 320px;
         }
         
         .bpw-card-overlay .bpw-card-link {
             display: block;
             position: relative;
+            text-decoration: none;
+            transition: transform 0.3s ease;
+        }
+        
+        .bpw-card-overlay .bpw-card-link:hover {
+            transform: translateY(-4px);
         }
         
         .bpw-card-overlay .bpw-card-image {
+            position: relative;
+            width: 100%;
+            height: 280px;
             border-radius: 16px;
             overflow: hidden;
+            background: #F5F5F5;
         }
         
         .bpw-card-overlay .bpw-card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             transition: transform 0.4s ease;
         }
         
@@ -2084,18 +2100,21 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 60px 20px 20px 20px;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
+            padding: 60px 16px 16px 16px;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
             border-radius: 0 0 16px 16px;
         }
         
         .bpw-card-overlay .bpw-card-title {
             color: #fff;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             line-height: 1.4;
             margin: 0;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
         
         .bpw-carousel-next {
@@ -2103,29 +2122,30 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             top: 50%;
             right: 20px;
             transform: translateY(-50%);
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #F57C00;
+            background: #E87722;
             border: none;
-            border-radius: 50%;
+            border-radius: 8px;
             color: #fff;
             cursor: pointer;
             z-index: 10;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(245, 124, 0, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
         
         .bpw-carousel-next:hover {
-            background: #E65100;
-            transform: translateY(-50%) scale(1.1);
+            background: #D06A1D;
+            transform: translateY(-50%) scale(1.05);
         }
         
         .bpw-carousel-next svg {
-            width: 20px;
-            height: 20px;
+            width: 24px;
+            height: 24px;
+            stroke-width: 2.5;
         }
         
         .bpw-carousel-pagination {
@@ -2133,6 +2153,7 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             justify-content: center;
             gap: 8px;
             margin-top: 24px;
+            padding-right: calc((100% - 1200px) / 2 + 24px);
         }
         
         .bpw-carousel-pagination .swiper-pagination-bullet {
@@ -2150,24 +2171,51 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             transform: scale(1.2);
         }
         
+        @media (max-width: 1248px) {
+            .bpw-carousel-wrapper {
+                padding-left: 24px;
+            }
+            
+            .bpw-carousel-pagination {
+                padding-right: 24px;
+            }
+        }
+        
         @media (max-width: 767px) {
+            .bpw-carousel-wrapper {
+                padding-left: 16px;
+            }
+            
             .bpw-carousel-next {
-                width: 36px;
-                height: 36px;
+                width: 40px;
+                height: 40px;
                 right: 10px;
             }
             
             .bpw-carousel-next svg {
-                width: 16px;
-                height: 16px;
+                width: 20px;
+                height: 20px;
+            }
+            
+            .bpw-card-overlay {
+                width: 240px;
+                min-width: 220px;
+            }
+            
+            .bpw-card-overlay .bpw-card-image {
+                height: 240px;
             }
             
             .bpw-card-overlay .bpw-card-title {
-                font-size: 14px;
+                font-size: 13px;
             }
             
             .bpw-card-overlay-content {
-                padding: 40px 15px 15px 15px;
+                padding: 50px 12px 12px 12px;
+            }
+            
+            .bpw-carousel-pagination {
+                padding-right: 16px;
             }
         }
         </style>
