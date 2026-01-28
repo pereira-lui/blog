@@ -1621,7 +1621,9 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         .bpw-carousel-next svg {
             width: 24px;
             height: 24px;
+            stroke: #fff;
             stroke-width: 2.5;
+            fill: none;
         }
         
         @media (max-width: 1248px) {
