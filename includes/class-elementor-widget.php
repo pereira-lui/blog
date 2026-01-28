@@ -908,7 +908,79 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         $this->end_controls_section();
 
         // ========================================
-        // Content Section - Exibição (removido opções não usadas no carrossel)
+        // Content Section - Título da Seção
+        // ========================================
+        $this->start_controls_section(
+            'title_section',
+            [
+                'label' => __('Título da Seção', 'blog-pda'),
+                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
+            ]
+        );
+
+        $this->add_control(
+            'show_section_title',
+            [
+                'label' => __('Mostrar Título', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => __('Sim', 'blog-pda'),
+                'label_off' => __('Não', 'blog-pda'),
+                'default' => 'yes',
+            ]
+        );
+
+        $this->add_control(
+            'section_title',
+            [
+                'label' => __('Título', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::TEXT,
+                'default' => __('Os 10 artigos mais lidos', 'blog-pda'),
+                'label_block' => true,
+                'condition' => [
+                    'show_section_title' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'title_tag',
+            [
+                'label' => __('Tag HTML', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => 'h2',
+                'options' => [
+                    'h1' => 'H1',
+                    'h2' => 'H2',
+                    'h3' => 'H3',
+                    'h4' => 'H4',
+                    'h5' => 'H5',
+                    'h6' => 'H6',
+                    'p' => 'P',
+                ],
+                'condition' => [
+                    'show_section_title' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'show_title_line',
+            [
+                'label' => __('Mostrar Linha', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => __('Sim', 'blog-pda'),
+                'label_off' => __('Não', 'blog-pda'),
+                'default' => 'yes',
+                'condition' => [
+                    'show_section_title' => 'yes',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // ========================================
+        // Content Section - Exibição
         // ========================================
         $this->start_controls_section(
             'display_section',
@@ -929,6 +1001,171 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                     '4-3' => '4:3',
                     '1-1' => '1:1 (Quadrado)',
                     '3-4' => '3:4',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
+
+        // ========================================
+        // Style Section - Título
+        // ========================================
+        $this->start_controls_section(
+            'style_title_section',
+            [
+                'label' => __('Estilo do Título', 'blog-pda'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'show_section_title' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'section_title_color',
+            [
+                'label' => __('Cor do Título', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#1F1F1F',
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-section-title' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_group_control(
+            \Elementor\Group_Control_Typography::get_type(),
+            [
+                'name' => 'section_title_typography',
+                'label' => __('Tipografia', 'blog-pda'),
+                'selector' => '{{WRAPPER}} .bpw-section-title',
+            ]
+        );
+
+        $this->add_control(
+            'section_title_margin',
+            [
+                'label' => __('Margem Inferior', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 100,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 32,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-section-header' => 'margin-bottom: {{SIZE}}{{UNIT}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'title_line_heading',
+            [
+                'label' => __('Linha', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::HEADING,
+                'separator' => 'before',
+                'condition' => [
+                    'show_title_line' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'title_line_color',
+            [
+                'label' => __('Cor da Linha', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#702F8A',
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-title-line' => 'background-color: {{VALUE}};',
+                ],
+                'condition' => [
+                    'show_title_line' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'title_line_width',
+            [
+                'label' => __('Largura da Linha', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px', '%'],
+                'range' => [
+                    'px' => [
+                        'min' => 20,
+                        'max' => 300,
+                    ],
+                    '%' => [
+                        'min' => 5,
+                        'max' => 100,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 60,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-title-line' => 'width: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => [
+                    'show_title_line' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'title_line_height',
+            [
+                'label' => __('Espessura da Linha', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 1,
+                        'max' => 10,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 4,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-title-line' => 'height: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => [
+                    'show_title_line' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'title_line_spacing',
+            [
+                'label' => __('Espaço entre Título e Linha', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 30,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 12,
+                ],
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-title-line' => 'margin-top: {{SIZE}}{{UNIT}};',
+                ],
+                'condition' => [
+                    'show_title_line' => 'yes',
                 ],
             ]
         );
@@ -1078,9 +1315,24 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         $autoplay = $settings['carousel_autoplay'] === 'yes';
         $autoplay_speed = $settings['carousel_autoplay_speed'] ?? 5000;
         $posts_count = count($posts);
+        
+        // Configurações do título
+        $show_title = $settings['show_section_title'] === 'yes';
+        $section_title = $settings['section_title'] ?? '';
+        $title_tag = $settings['title_tag'] ?? 'h2';
+        $show_line = $settings['show_title_line'] === 'yes';
         ?>
         
         <div class="bpw-widget bpw-widget-carousel">
+            <?php if ($show_title && !empty($section_title)) : ?>
+            <div class="bpw-section-header">
+                <<?php echo esc_html($title_tag); ?> class="bpw-section-title"><?php echo esc_html($section_title); ?></<?php echo esc_html($title_tag); ?>>
+                <?php if ($show_line) : ?>
+                <div class="bpw-title-line"></div>
+                <?php endif; ?>
+            </div>
+            <?php endif; ?>
+            
             <div class="bpw-carousel-wrapper">
                 <div class="swiper bpw-carousel" id="bpw-carousel-<?php echo esc_attr($widget_id); ?>">
                     <div class="swiper-wrapper">
@@ -1169,6 +1421,30 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         /* Blog Posts Widget - Carrossel */
         .bpw-widget {
             width: 100%;
+        }
+        
+        /* Section Title Styles */
+        .bpw-section-header {
+            padding-left: calc((100% - 1200px) / 2 + 24px);
+            padding-right: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .bpw-section-title {
+            margin: 0;
+            padding: 0;
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #1F1F1F;
+        }
+        
+        .bpw-title-line {
+            width: 60px;
+            height: 4px;
+            background-color: #702F8A;
+            margin-top: 12px;
+            border-radius: 2px;
         }
         
         /* Carousel Styles - Grudado à direita */
