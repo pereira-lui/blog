@@ -827,9 +827,9 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             [
                 'label' => __('Quantidade de Posts', 'blog-pda'),
                 'type' => \Elementor\Controls_Manager::NUMBER,
-                'default' => 3,
+                'default' => 6,
                 'min' => 1,
-                'max' => 12,
+                'max' => 20,
                 'condition' => [
                     'selection_type!' => 'manual',
                 ],
@@ -839,69 +839,13 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         $this->end_controls_section();
 
         // ========================================
-        // Content Section - Layout
+        // Content Section - Carrossel
         // ========================================
         $this->start_controls_section(
-            'layout_section',
+            'carousel_section',
             [
-                'label' => __('Layout', 'blog-pda'),
+                'label' => __('Carrossel', 'blog-pda'),
                 'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
-            ]
-        );
-
-        $this->add_control(
-            'layout_type',
-            [
-                'label' => __('Tipo de Layout', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SELECT,
-                'default' => 'grid',
-                'options' => [
-                    'grid' => __('Grid', 'blog-pda'),
-                    'carousel' => __('Carrossel', 'blog-pda'),
-                    'list' => __('Lista', 'blog-pda'),
-                    'featured' => __('Destaque + Grid', 'blog-pda'),
-                ],
-            ]
-        );
-
-        $this->add_responsive_control(
-            'columns',
-            [
-                'label' => __('Colunas', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SELECT,
-                'default' => '3',
-                'tablet_default' => '2',
-                'mobile_default' => '1',
-                'options' => [
-                    '1' => '1',
-                    '2' => '2',
-                    '3' => '3',
-                    '4' => '4',
-                ],
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-grid' => 'grid-template-columns: repeat({{VALUE}}, 1fr);',
-                ],
-                'condition' => [
-                    'layout_type' => ['grid', 'featured'],
-                ],
-            ]
-        );
-
-        $this->add_responsive_control(
-            'slides_per_view',
-            [
-                'label' => __('Slides por Visualização', 'blog-pda'),
-                'description' => __('Use valores decimais (ex: 1.5, 2.5) para mostrar parte do próximo slide', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::NUMBER,
-                'default' => 3,
-                'tablet_default' => 2,
-                'mobile_default' => 1,
-                'min' => 1,
-                'max' => 6,
-                'step' => 0.1,
-                'condition' => [
-                    'layout_type' => 'carousel',
-                ],
             ]
         );
 
@@ -921,9 +865,6 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                     'unit' => 'px',
                     'size' => 24,
                 ],
-                'condition' => [
-                    'layout_type' => 'carousel',
-                ],
             ]
         );
 
@@ -934,10 +875,7 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                 'type' => \Elementor\Controls_Manager::SWITCHER,
                 'label_on' => __('Sim', 'blog-pda'),
                 'label_off' => __('Não', 'blog-pda'),
-                'default' => 'yes',
-                'condition' => [
-                    'layout_type' => 'carousel',
-                ],
+                'default' => '',
             ]
         );
 
@@ -948,10 +886,7 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                 'type' => \Elementor\Controls_Manager::SWITCHER,
                 'label_on' => __('Sim', 'blog-pda'),
                 'label_off' => __('Não', 'blog-pda'),
-                'default' => 'yes',
-                'condition' => [
-                    'layout_type' => 'carousel',
-                ],
+                'default' => '',
             ]
         );
 
@@ -965,48 +900,21 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                 'max' => 10000,
                 'step' => 500,
                 'condition' => [
-                    'layout_type' => 'carousel',
                     'carousel_autoplay' => 'yes',
                 ],
             ]
         );
 
-        $this->add_control(
-            'carousel_navigation',
-            [
-                'label' => __('Setas de Navegação', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SWITCHER,
-                'label_on' => __('Sim', 'blog-pda'),
-                'label_off' => __('Não', 'blog-pda'),
-                'default' => 'yes',
-                'condition' => [
-                    'layout_type' => 'carousel',
-                ],
-            ]
-        );
+        $this->end_controls_section();
 
-        $this->add_control(
-            'carousel_pagination',
+        // ========================================
+        // Content Section - Exibição (removido opções não usadas no carrossel)
+        // ========================================
+        $this->start_controls_section(
+            'display_section',
             [
-                'label' => __('Paginação (Dots)', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SWITCHER,
-                'label_on' => __('Sim', 'blog-pda'),
-                'label_off' => __('Não', 'blog-pda'),
-                'default' => 'yes',
-                'condition' => [
-                    'layout_type' => 'carousel',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'show_image',
-            [
-                'label' => __('Mostrar Imagem', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SWITCHER,
-                'label_on' => __('Sim', 'blog-pda'),
-                'label_off' => __('Não', 'blog-pda'),
-                'default' => 'yes',
+                'label' => __('Exibição', 'blog-pda'),
+                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
             ]
         );
 
@@ -1015,9 +923,17 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             [
                 'label' => __('Proporção da Imagem', 'blog-pda'),
                 'type' => \Elementor\Controls_Manager::SELECT,
-                'default' => '16-9',
+                'default' => '1-1',
                 'options' => [
                     '16-9' => '16:9',
+                    '4-3' => '4:3',
+                    '1-1' => '1:1 (Quadrado)',
+                    '3-4' => '3:4',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
                     '4-3' => '4:3',
                     '1-1' => '1:1',
                     '3-4' => '3:4',
@@ -1101,96 +1017,20 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         $this->end_controls_section();
 
         // ========================================
-        // Content Section - Header
+        // Style Section - Carrossel
         // ========================================
         $this->start_controls_section(
-            'header_section',
+            'style_carousel_section',
             [
-                'label' => __('Cabeçalho', 'blog-pda'),
-                'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
-            ]
-        );
-
-        $this->add_control(
-            'show_header',
-            [
-                'label' => __('Mostrar Cabeçalho', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SWITCHER,
-                'label_on' => __('Sim', 'blog-pda'),
-                'label_off' => __('Não', 'blog-pda'),
-                'default' => 'no',
-            ]
-        );
-
-        $this->add_control(
-            'header_title',
-            [
-                'label' => __('Título', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::TEXT,
-                'default' => __('Posts do Blog', 'blog-pda'),
-                'label_block' => true,
-                'condition' => [
-                    'show_header' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'show_view_all',
-            [
-                'label' => __('Mostrar "Ver Todos"', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SWITCHER,
-                'label_on' => __('Sim', 'blog-pda'),
-                'label_off' => __('Não', 'blog-pda'),
-                'default' => 'yes',
-                'condition' => [
-                    'show_header' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'view_all_text',
-            [
-                'label' => __('Texto "Ver Todos"', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::TEXT,
-                'default' => __('Ver todos os posts', 'blog-pda'),
-                'condition' => [
-                    'show_header' => 'yes',
-                    'show_view_all' => 'yes',
-                ],
-            ]
-        );
-
-        $this->end_controls_section();
-
-        // ========================================
-        // Style Section - Card
-        // ========================================
-        $this->start_controls_section(
-            'style_card_section',
-            [
-                'label' => __('Card', 'blog-pda'),
+                'label' => __('Estilo do Carrossel', 'blog-pda'),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
-            ]
-        );
-
-        $this->add_control(
-            'card_bg_color',
-            [
-                'label' => __('Cor de Fundo', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#FFFFFF',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-card' => 'background-color: {{VALUE}};',
-                ],
             ]
         );
 
         $this->add_control(
             'card_border_radius',
             [
-                'label' => __('Border Radius', 'blog-pda'),
+                'label' => __('Border Radius dos Cards', 'blog-pda'),
                 'type' => \Elementor\Controls_Manager::SLIDER,
                 'size_units' => ['px'],
                 'range' => [
@@ -1204,54 +1044,22 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                     'size' => 16,
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .bpw-card' => 'border-radius: {{SIZE}}{{UNIT}};',
-                    '{{WRAPPER}} .bpw-card-image' => 'border-radius: {{SIZE}}{{UNIT}} {{SIZE}}{{UNIT}} 0 0;',
+                    '{{WRAPPER}} .bpw-card-overlay' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bpw-card-image' => 'border-radius: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bpw-card-overlay-content' => 'border-radius: 0 0 {{SIZE}}{{UNIT}} {{SIZE}}{{UNIT}};',
                 ],
-            ]
-        );
-
-        $this->add_group_control(
-            \Elementor\Group_Control_Box_Shadow::get_type(),
-            [
-                'name' => 'card_shadow',
-                'label' => __('Sombra', 'blog-pda'),
-                'selector' => '{{WRAPPER}} .bpw-card',
             ]
         );
 
         $this->add_control(
-            'card_gap',
+            'carousel_nav_color',
             [
-                'label' => __('Espaçamento entre Cards', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SLIDER,
-                'size_units' => ['px'],
-                'range' => [
-                    'px' => [
-                        'min' => 10,
-                        'max' => 50,
-                    ],
-                ],
-                'default' => [
-                    'unit' => 'px',
-                    'size' => 24,
-                ],
+                'label' => __('Cor do Botão Próximo', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#E87722',
                 'selectors' => [
-                    '{{WRAPPER}} .bpw-grid' => 'gap: {{SIZE}}{{UNIT}};',
-                    '{{WRAPPER}} .bpw-list' => 'gap: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .bpw-carousel-next' => 'background-color: {{VALUE}};',
                 ],
-            ]
-        );
-
-        $this->end_controls_section();
-
-        // ========================================
-        // Style Section - Typography
-        // ========================================
-        $this->start_controls_section(
-            'style_typography_section',
-            [
-                'label' => __('Tipografia', 'blog-pda'),
-                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
 
@@ -1260,243 +1068,9 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             [
                 'label' => __('Cor do Título', 'blog-pda'),
                 'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#1F1F1F',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-card-title' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_group_control(
-            \Elementor\Group_Control_Typography::get_type(),
-            [
-                'name' => 'card_title_typography',
-                'label' => __('Tipografia do Título', 'blog-pda'),
-                'selector' => '{{WRAPPER}} .bpw-card-title',
-            ]
-        );
-
-        $this->add_control(
-            'excerpt_color',
-            [
-                'label' => __('Cor do Resumo', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#666666',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-card-excerpt' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'date_color',
-            [
-                'label' => __('Cor da Data', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#999999',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-card-date' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'category_color',
-            [
-                'label' => __('Cor da Categoria', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#702F8A',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-card-category' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'category_bg_color',
-            [
-                'label' => __('Fundo da Categoria', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => 'rgba(112, 47, 138, 0.1)',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-card-category' => 'background-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->end_controls_section();
-
-        // ========================================
-        // Style Section - Header
-        // ========================================
-        $this->start_controls_section(
-            'style_header_section',
-            [
-                'label' => __('Cabeçalho', 'blog-pda'),
-                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
-                'condition' => [
-                    'show_header' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'header_title_color',
-            [
-                'label' => __('Cor do Título', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#1F1F1F',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-header-title' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_group_control(
-            \Elementor\Group_Control_Typography::get_type(),
-            [
-                'name' => 'header_title_typography',
-                'label' => __('Tipografia do Título', 'blog-pda'),
-                'selector' => '{{WRAPPER}} .bpw-header-title',
-            ]
-        );
-
-        $this->add_control(
-            'view_all_color',
-            [
-                'label' => __('Cor "Ver Todos"', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#702F8A',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-view-all' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->end_controls_section();
-
-        // ========================================
-        // Style Section - Read More
-        // ========================================
-        $this->start_controls_section(
-            'style_read_more_section',
-            [
-                'label' => __('Botão Leia Mais', 'blog-pda'),
-                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
-                'condition' => [
-                    'show_read_more' => 'yes',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'read_more_color',
-            [
-                'label' => __('Cor do Texto', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#702F8A',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-card-read-more' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'read_more_bg_color',
-            [
-                'label' => __('Cor de Fundo', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => 'transparent',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-card-read-more' => 'background-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->end_controls_section();
-
-        // ========================================
-        // Style Section - Carousel
-        // ========================================
-        $this->start_controls_section(
-            'style_carousel_section',
-            [
-                'label' => __('Carrossel', 'blog-pda'),
-                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
-                'condition' => [
-                    'layout_type' => 'carousel',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'carousel_nav_color',
-            [
-                'label' => __('Cor das Setas', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#702F8A',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-carousel-prev, {{WRAPPER}} .bpw-carousel-next' => 'color: {{VALUE}}; border-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'carousel_nav_bg_color',
-            [
-                'label' => __('Fundo das Setas', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
                 'default' => '#FFFFFF',
                 'selectors' => [
-                    '{{WRAPPER}} .bpw-carousel-prev, {{WRAPPER}} .bpw-carousel-next' => 'background-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'carousel_nav_hover_color',
-            [
-                'label' => __('Cor das Setas (Hover)', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#FFFFFF',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-carousel-prev:hover, {{WRAPPER}} .bpw-carousel-next:hover' => 'color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'carousel_nav_hover_bg_color',
-            [
-                'label' => __('Fundo das Setas (Hover)', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#702F8A',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-carousel-prev:hover, {{WRAPPER}} .bpw-carousel-next:hover' => 'background-color: {{VALUE}}; border-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'carousel_dots_color',
-            [
-                'label' => __('Cor dos Dots', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#E0E0E0',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-carousel-pagination .swiper-pagination-bullet' => 'background-color: {{VALUE}};',
-                ],
-            ]
-        );
-
-        $this->add_control(
-            'carousel_dots_active_color',
-            [
-                'label' => __('Cor do Dot Ativo', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::COLOR,
-                'default' => '#702F8A',
-                'selectors' => [
-                    '{{WRAPPER}} .bpw-carousel-pagination .swiper-pagination-bullet-active' => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .bpw-card-overlay .bpw-card-title' => 'color: {{VALUE}};',
                 ],
             ]
         );
@@ -1577,92 +1151,21 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             return;
         }
 
-        $layout_type = $settings['layout_type'];
-        $show_image = $settings['show_image'] === 'yes';
-        $show_category = $settings['show_category'] === 'yes';
-        $show_date = $settings['show_date'] === 'yes';
-        $show_excerpt = $settings['show_excerpt'] === 'yes';
-        $excerpt_length = $settings['excerpt_length'];
-        $show_read_more = $settings['show_read_more'] === 'yes';
-        $read_more_text = $settings['read_more_text'];
-        $image_ratio = $settings['image_ratio'];
+        $image_ratio = $settings['image_ratio'] ?? '1-1';
         
-        $show_header = $settings['show_header'] === 'yes';
-        $header_title = $settings['header_title'];
-        $show_view_all = $settings['show_view_all'] === 'yes';
-        $view_all_text = $settings['view_all_text'];
-        $view_all_link = get_post_type_archive_link('blog_post');
+        $widget_id = $this->get_id();
+        $space_between = $settings['carousel_space_between']['size'] ?? 24;
+        $loop = $settings['carousel_loop'] === 'yes';
+        $autoplay = $settings['carousel_autoplay'] === 'yes';
+        $autoplay_speed = $settings['carousel_autoplay_speed'] ?? 5000;
+        $posts_count = count($posts);
         ?>
         
-        <div class="bpw-widget" data-layout="<?php echo esc_attr($layout_type); ?>">
-            
-            <?php if ($show_header) : ?>
-            <header class="bpw-header">
-                <h2 class="bpw-header-title"><?php echo esc_html($header_title); ?></h2>
-                <?php if ($show_view_all && $view_all_link) : ?>
-                <a href="<?php echo esc_url($view_all_link); ?>" class="bpw-view-all">
-                    <?php echo esc_html($view_all_text); ?>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                    </svg>
-                </a>
-                <?php endif; ?>
-            </header>
-            <?php endif; ?>
-            
-            <?php if ($layout_type === 'featured' && count($posts) > 0) : 
-                $featured_post = array_shift($posts);
-                $featured_categories = get_the_terms($featured_post->ID, 'blog_category');
-            ?>
-            <div class="bpw-featured">
-                <article class="bpw-card bpw-card-featured">
-                    <a href="<?php echo get_permalink($featured_post->ID); ?>" class="bpw-card-link">
-                        <?php if ($show_image && has_post_thumbnail($featured_post->ID)) : ?>
-                        <div class="bpw-card-image bpw-ratio-<?php echo esc_attr($image_ratio); ?>">
-                            <?php echo get_the_post_thumbnail($featured_post->ID, 'large'); ?>
-                            <?php if ($show_category && $featured_categories && !is_wp_error($featured_categories)) : ?>
-                            <span class="bpw-card-category"><?php echo esc_html($featured_categories[0]->name); ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
-                        <div class="bpw-card-content">
-                            <h3 class="bpw-card-title"><?php echo esc_html($featured_post->post_title); ?></h3>
-                            <?php if ($show_date) : ?>
-                            <span class="bpw-card-date"><?php echo get_the_date('d \d\e F \d\e Y', $featured_post->ID); ?></span>
-                            <?php endif; ?>
-                            <?php if ($show_excerpt) : ?>
-                            <p class="bpw-card-excerpt"><?php echo wp_trim_words(get_the_excerpt($featured_post->ID), $excerpt_length * 2); ?></p>
-                            <?php endif; ?>
-                            <?php if ($show_read_more) : ?>
-                            <span class="bpw-card-read-more"><?php echo esc_html($read_more_text); ?></span>
-                            <?php endif; ?>
-                        </div>
-                    </a>
-                </article>
-            </div>
-            <?php endif; ?>
-            
-            <?php if (!empty($posts)) : ?>
-            
-            <?php if ($layout_type === 'carousel') : 
-                $widget_id = $this->get_id();
-                $slides_per_view = $settings['slides_per_view'] ?? '3';
-                $slides_per_view_tablet = $settings['slides_per_view_tablet'] ?? '2';
-                $slides_per_view_mobile = $settings['slides_per_view_mobile'] ?? '1';
-                $space_between = $settings['carousel_space_between']['size'] ?? 24;
-                $loop = $settings['carousel_loop'] === 'yes';
-                $autoplay = $settings['carousel_autoplay'] === 'yes';
-                $autoplay_speed = $settings['carousel_autoplay_speed'] ?? 5000;
-                $show_nav = $settings['carousel_navigation'] === 'yes';
-                $show_dots = $settings['carousel_pagination'] === 'yes';
-            ?>
+        <div class="bpw-widget bpw-widget-carousel">
             <div class="bpw-carousel-wrapper">
                 <div class="swiper bpw-carousel" id="bpw-carousel-<?php echo esc_attr($widget_id); ?>">
                     <div class="swiper-wrapper">
-                        <?php foreach ($posts as $post) : 
-                            $post_categories = get_the_terms($post->ID, 'blog_category');
-                        ?>
+                        <?php foreach ($posts as $post) : ?>
                         <div class="swiper-slide">
                             <article class="bpw-card bpw-card-overlay">
                                 <a href="<?php echo get_permalink($post->ID); ?>" class="bpw-card-link">
@@ -1681,28 +1184,25 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                     </div>
                 </div>
                 
-                <?php if ($show_nav) : ?>
-                <button class="bpw-carousel-next" id="bpw-next-<?php echo esc_attr($widget_id); ?>" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
+                <button class="bpw-carousel-next" id="bpw-next-<?php echo esc_attr($widget_id); ?>" aria-label="<?php _e('Próximo', 'blog-pda'); ?>" style="display: none;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </button>
-                <?php endif; ?>
-                
-                <?php if ($show_dots) : ?>
-                <div class="bpw-carousel-pagination" id="bpw-pagination-<?php echo esc_attr($widget_id); ?>"></div>
-                <?php endif; ?>
             </div>
             
             <script>
             (function() {
-                function initBPWCarousel() {
+                function initBPWCarousel<?php echo esc_js($widget_id); ?>() {
                     if (typeof Swiper === 'undefined') {
-                        setTimeout(initBPWCarousel, 100);
+                        setTimeout(initBPWCarousel<?php echo esc_js($widget_id); ?>, 100);
                         return;
                     }
                     
-                    new Swiper('#bpw-carousel-<?php echo esc_js($widget_id); ?>', {
+                    var swiperEl = document.getElementById('bpw-carousel-<?php echo esc_js($widget_id); ?>');
+                    var nextBtn = document.getElementById('bpw-next-<?php echo esc_js($widget_id); ?>');
+                    
+                    var swiper = new Swiper('#bpw-carousel-<?php echo esc_js($widget_id); ?>', {
                         slidesPerView: 'auto',
                         spaceBetween: <?php echo intval($space_between); ?>,
                         loop: <?php echo $loop ? 'true' : 'false'; ?>,
@@ -1713,319 +1213,43 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                             pauseOnMouseEnter: true,
                         },
                         <?php endif; ?>
-                        <?php if ($show_nav) : ?>
                         navigation: {
                             nextEl: '#bpw-next-<?php echo esc_js($widget_id); ?>',
                         },
-                        <?php endif; ?>
-                        <?php if ($show_dots) : ?>
-                        pagination: {
-                            el: '#bpw-pagination-<?php echo esc_js($widget_id); ?>',
-                            clickable: true,
-                        },
-                        <?php endif; ?>
+                        on: {
+                            init: function() {
+                                checkScrollable(this);
+                            },
+                            resize: function() {
+                                checkScrollable(this);
+                            }
+                        }
                     });
+                    
+                    function checkScrollable(swiperInstance) {
+                        var wrapper = swiperInstance.wrapperEl;
+                        var container = swiperInstance.el;
+                        var isScrollable = wrapper.scrollWidth > container.clientWidth;
+                        
+                        if (nextBtn) {
+                            nextBtn.style.display = isScrollable ? 'flex' : 'none';
+                        }
+                    }
                 }
                 
                 if (document.readyState === 'complete') {
-                    initBPWCarousel();
+                    initBPWCarousel<?php echo esc_js($widget_id); ?>();
                 } else {
-                    window.addEventListener('load', initBPWCarousel);
+                    window.addEventListener('load', initBPWCarousel<?php echo esc_js($widget_id); ?>);
                 }
             })();
             </script>
-            
-            <?php else : ?>
-            <div class="bpw-<?php echo $layout_type === 'list' ? 'list' : 'grid'; ?>">
-                <?php foreach ($posts as $post) : 
-                    $post_categories = get_the_terms($post->ID, 'blog_category');
-                ?>
-                <article class="bpw-card">
-                    <a href="<?php echo get_permalink($post->ID); ?>" class="bpw-card-link">
-                        <?php if ($show_image && has_post_thumbnail($post->ID)) : ?>
-                        <div class="bpw-card-image bpw-ratio-<?php echo esc_attr($image_ratio); ?>">
-                            <?php echo get_the_post_thumbnail($post->ID, 'medium_large'); ?>
-                            <?php if ($show_category && $post_categories && !is_wp_error($post_categories)) : ?>
-                            <span class="bpw-card-category"><?php echo esc_html($post_categories[0]->name); ?></span>
-                            <?php endif; ?>
-                        </div>
-                        <?php endif; ?>
-                        <div class="bpw-card-content">
-                            <h3 class="bpw-card-title"><?php echo esc_html($post->post_title); ?></h3>
-                            <?php if ($show_date) : ?>
-                            <span class="bpw-card-date"><?php echo get_the_date('d \d\e F \d\e Y', $post->ID); ?></span>
-                            <?php endif; ?>
-                            <?php if ($show_excerpt) : ?>
-                            <p class="bpw-card-excerpt"><?php echo wp_trim_words(get_the_excerpt($post->ID), $excerpt_length); ?></p>
-                            <?php endif; ?>
-                            <?php if ($show_read_more) : ?>
-                            <span class="bpw-card-read-more"><?php echo esc_html($read_more_text); ?></span>
-                            <?php endif; ?>
-                        </div>
-                    </a>
-                </article>
-                <?php endforeach; ?>
-            </div>
-            <?php endif; ?>
-            
-            <?php endif; ?>
-            
         </div>
         
         <style>
-        /* Blog Posts Widget Grid Styles */
+        /* Blog Posts Widget - Carrossel */
         .bpw-widget {
             width: 100%;
-        }
-        
-        .bpw-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 16px;
-        }
-        
-        .bpw-header-title {
-            margin: 0;
-            font-size: 28px;
-            font-weight: 700;
-            line-height: 1.3;
-        }
-        
-        .bpw-view-all {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        
-        .bpw-view-all:hover {
-            gap: 12px;
-        }
-        
-        .bpw-view-all svg {
-            transition: transform 0.3s ease;
-        }
-        
-        .bpw-view-all:hover svg {
-            transform: translateX(4px);
-        }
-        
-        /* Grid Layout */
-        .bpw-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-        }
-        
-        /* List Layout */
-        .bpw-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
-        .bpw-list .bpw-card {
-            display: flex;
-            flex-direction: row;
-        }
-        
-        .bpw-list .bpw-card-link {
-            display: flex;
-            flex-direction: row;
-            gap: 20px;
-        }
-        
-        .bpw-list .bpw-card-image {
-            width: 200px;
-            min-width: 200px;
-            border-radius: 12px;
-        }
-        
-        .bpw-list .bpw-card-content {
-            padding: 0;
-        }
-        
-        /* Featured Layout */
-        .bpw-featured {
-            margin-bottom: 24px;
-        }
-        
-        .bpw-card-featured {
-            display: block;
-        }
-        
-        .bpw-card-featured .bpw-card-image {
-            height: 400px;
-        }
-        
-        .bpw-card-featured .bpw-card-title {
-            font-size: 28px;
-        }
-        
-        .bpw-card-featured .bpw-card-excerpt {
-            font-size: 16px;
-        }
-        
-        /* Card Styles */
-        .bpw-card {
-            background: #fff;
-            border-radius: 16px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-        }
-        
-        .bpw-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        }
-        
-        .bpw-card-link {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-        }
-        
-        .bpw-card-image {
-            position: relative;
-            overflow: hidden;
-            background: #f5f5f5;
-        }
-        
-        .bpw-card-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s ease;
-        }
-        
-        .bpw-card:hover .bpw-card-image img {
-            transform: scale(1.05);
-        }
-        
-        /* Image Ratios */
-        .bpw-ratio-16-9 {
-            aspect-ratio: 16 / 9;
-        }
-        
-        .bpw-ratio-4-3 {
-            aspect-ratio: 4 / 3;
-        }
-        
-        .bpw-ratio-1-1 {
-            aspect-ratio: 1 / 1;
-        }
-        
-        .bpw-ratio-3-4 {
-            aspect-ratio: 3 / 4;
-        }
-        
-        .bpw-card-category {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            border-radius: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .bpw-card-content {
-            padding: 20px;
-        }
-        
-        .bpw-card-title {
-            margin: 0 0 8px;
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1.4;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            transition: color 0.3s ease;
-        }
-        
-        .bpw-card:hover .bpw-card-title {
-            color: #702F8A;
-        }
-        
-        .bpw-card-date {
-            display: block;
-            font-size: 13px;
-            margin-bottom: 10px;
-            opacity: 0.7;
-        }
-        
-        .bpw-card-excerpt {
-            margin: 0 0 12px;
-            font-size: 14px;
-            line-height: 1.6;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        
-        .bpw-card-read-more {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        
-        .bpw-card:hover .bpw-card-read-more {
-            gap: 10px;
-        }
-        
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .bpw-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .bpw-card-featured .bpw-card-image {
-                height: 300px;
-            }
-        }
-        
-        @media (max-width: 767px) {
-            .bpw-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .bpw-list .bpw-card-link {
-                flex-direction: column;
-            }
-            
-            .bpw-list .bpw-card-image {
-                width: 100%;
-                min-width: auto;
-            }
-            
-            .bpw-card-featured .bpw-card-image {
-                height: 200px;
-            }
-            
-            .bpw-card-featured .bpw-card-title {
-                font-size: 22px;
-            }
-            
-            .bpw-header-title {
-                font-size: 24px;
-            }
         }
         
         /* Carousel Styles - Grudado à direita */
@@ -2048,10 +1272,6 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         .bpw-carousel .swiper-slide {
             height: auto;
             width: auto;
-        }
-        
-        .bpw-carousel .bpw-card {
-            height: 100%;
         }
         
         /* Overlay Card Style for Carousel */
@@ -2093,6 +1313,27 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         
         .bpw-card-overlay:hover .bpw-card-image img {
             transform: scale(1.05);
+        }
+        
+        /* Image Ratios */
+        .bpw-ratio-16-9 {
+            aspect-ratio: 16 / 9;
+            height: auto !important;
+        }
+        
+        .bpw-ratio-4-3 {
+            aspect-ratio: 4 / 3;
+            height: auto !important;
+        }
+        
+        .bpw-ratio-1-1 {
+            aspect-ratio: 1 / 1;
+            height: auto !important;
+        }
+        
+        .bpw-ratio-3-4 {
+            aspect-ratio: 3 / 4;
+            height: auto !important;
         }
         
         .bpw-card-overlay-content {
@@ -2148,36 +1389,9 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             stroke-width: 2.5;
         }
         
-        .bpw-carousel-pagination {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-top: 24px;
-            padding-right: calc((100% - 1200px) / 2 + 24px);
-        }
-        
-        .bpw-carousel-pagination .swiper-pagination-bullet {
-            width: 10px;
-            height: 10px;
-            background: #E0E0E0;
-            border-radius: 50%;
-            opacity: 1;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .bpw-carousel-pagination .swiper-pagination-bullet-active {
-            background: #702F8A;
-            transform: scale(1.2);
-        }
-        
         @media (max-width: 1248px) {
             .bpw-carousel-wrapper {
                 padding-left: 24px;
-            }
-            
-            .bpw-carousel-pagination {
-                padding-right: 24px;
             }
         }
         
@@ -2212,10 +1426,6 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             
             .bpw-card-overlay-content {
                 padding: 50px 12px 12px 12px;
-            }
-            
-            .bpw-carousel-pagination {
-                padding-right: 16px;
             }
         }
         </style>
