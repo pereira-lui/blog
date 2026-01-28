@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 2.5.7
+ * Version: 2.5.8
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda

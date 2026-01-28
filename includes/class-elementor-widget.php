@@ -794,7 +794,7 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         $this->add_control(
             'selected_posts',
             [
-                'label' => __('Selecionar Posts', 'blog-pda'),
+                'label' => __('Buscar e Selecionar Posts', 'blog-pda'),
                 'type' => \Elementor\Controls_Manager::SELECT2,
                 'multiple' => true,
                 'options' => $this->get_blog_posts_options(),
@@ -803,7 +803,19 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                 'condition' => [
                     'selection_type' => 'manual',
                 ],
-                'description' => __('Selecione os posts que deseja exibir. A ordem de seleção será respeitada.', 'blog-pda'),
+                'description' => __('Digite para buscar posts pelo título. A ordem de seleção será respeitada.', 'blog-pda'),
+            ]
+        );
+
+        $this->add_control(
+            'posts_search_note',
+            [
+                'type' => \Elementor\Controls_Manager::RAW_HTML,
+                'raw' => '<div style="background: #f0f0f1; padding: 10px; border-radius: 4px; font-size: 12px;"><strong>💡 Dica:</strong> Digite parte do título do post no campo acima para filtrar a lista.</div>',
+                'content_classes' => 'elementor-descriptor',
+                'condition' => [
+                    'selection_type' => 'manual',
+                ],
             ]
         );
 
@@ -1355,7 +1367,7 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                     </div>
                 </div>
                 
-                <button class="bpw-carousel-next" id="bpw-next-<?php echo esc_attr($widget_id); ?>" aria-label="<?php _e('Próximo', 'blog-pda'); ?>" style="display: none;">
+                <button class="bpw-carousel-next" id="bpw-next-<?php echo esc_attr($widget_id); ?>" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
@@ -1398,21 +1410,49 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                     });
                     
                     function checkScrollable(swiperInstance) {
+                        if (!swiperInstance || !swiperInstance.wrapperEl) return;
+                        
                         var wrapper = swiperInstance.wrapperEl;
                         var container = swiperInstance.el;
-                        var isScrollable = wrapper.scrollWidth > container.clientWidth;
+                        
+                        // Calcular se há mais slides do que cabem na tela
+                        var totalSlidesWidth = 0;
+                        var slides = swiperInstance.slides;
+                        if (slides && slides.length > 0) {
+                            for (var i = 0; i < slides.length; i++) {
+                                totalSlidesWidth += slides[i].offsetWidth + <?php echo intval($space_between); ?>;
+                            }
+                        }
+                        
+                        var containerWidth = container.clientWidth;
+                        var isScrollable = totalSlidesWidth > containerWidth;
+                        
+                        console.log('BPW Carousel Debug:', {
+                            totalSlidesWidth: totalSlidesWidth,
+                            containerWidth: containerWidth,
+                            isScrollable: isScrollable,
+                            slidesCount: slides ? slides.length : 0
+                        });
                         
                         if (nextBtn) {
                             nextBtn.style.display = isScrollable ? 'flex' : 'none';
+                            nextBtn.style.visibility = isScrollable ? 'visible' : 'hidden';
                         }
                     }
                 }
                 
-                if (document.readyState === 'complete') {
-                    initBPWCarousel<?php echo esc_js($widget_id); ?>();
+                // Inicializar imediatamente e também no load para garantir
+                if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                    setTimeout(initBPWCarousel<?php echo esc_js($widget_id); ?>, 50);
                 } else {
-                    window.addEventListener('load', initBPWCarousel<?php echo esc_js($widget_id); ?>);
+                    document.addEventListener('DOMContentLoaded', function() {
+                        setTimeout(initBPWCarousel<?php echo esc_js($widget_id); ?>, 50);
+                    });
                 }
+                // Backup: também no window load
+                window.addEventListener('load', function() {
+                    setTimeout(initBPWCarousel<?php echo esc_js($widget_id); ?>, 100);
+                });
             })();
             </script>
         </div>
