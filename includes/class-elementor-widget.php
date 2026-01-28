@@ -877,17 +877,14 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             'slides_per_view',
             [
                 'label' => __('Slides por Visualização', 'blog-pda'),
-                'type' => \Elementor\Controls_Manager::SELECT,
-                'default' => '3',
-                'tablet_default' => '2',
-                'mobile_default' => '1',
-                'options' => [
-                    '1' => '1',
-                    '2' => '2',
-                    '3' => '3',
-                    '4' => '4',
-                    '5' => '5',
-                ],
+                'description' => __('Use valores decimais (ex: 1.5, 2.5) para mostrar parte do próximo slide', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::NUMBER,
+                'default' => 3,
+                'tablet_default' => 2,
+                'mobile_default' => 1,
+                'min' => 1,
+                'max' => 6,
+                'step' => 0.1,
                 'condition' => [
                     'layout_type' => 'carousel',
                 ],
@@ -1709,7 +1706,7 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                     }
                     
                     new Swiper('#bpw-carousel-<?php echo esc_js($widget_id); ?>', {
-                        slidesPerView: <?php echo intval($slides_per_view_mobile); ?>,
+                        slidesPerView: <?php echo floatval($slides_per_view_mobile); ?>,
                         spaceBetween: <?php echo intval($space_between); ?>,
                         loop: <?php echo $loop ? 'true' : 'false'; ?>,
                         <?php if ($autoplay) : ?>
@@ -1733,10 +1730,10 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                         <?php endif; ?>
                         breakpoints: {
                             768: {
-                                slidesPerView: <?php echo intval($slides_per_view_tablet); ?>,
+                                slidesPerView: <?php echo floatval($slides_per_view_tablet); ?>,
                             },
                             1024: {
-                                slidesPerView: <?php echo intval($slides_per_view); ?>,
+                                slidesPerView: <?php echo floatval($slides_per_view); ?>,
                             },
                         },
                     });
