@@ -843,6 +843,7 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                 'default' => 'grid',
                 'options' => [
                     'grid' => __('Grid', 'blog-pda'),
+                    'carousel' => __('Carrossel', 'blog-pda'),
                     'list' => __('Lista', 'blog-pda'),
                     'featured' => __('Destaque + Grid', 'blog-pda'),
                 ],
@@ -868,6 +869,121 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                 ],
                 'condition' => [
                     'layout_type' => ['grid', 'featured'],
+                ],
+            ]
+        );
+
+        $this->add_responsive_control(
+            'slides_per_view',
+            [
+                'label' => __('Slides por Visualização', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SELECT,
+                'default' => '3',
+                'tablet_default' => '2',
+                'mobile_default' => '1',
+                'options' => [
+                    '1' => '1',
+                    '2' => '2',
+                    '3' => '3',
+                    '4' => '4',
+                    '5' => '5',
+                ],
+                'condition' => [
+                    'layout_type' => 'carousel',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_space_between',
+            [
+                'label' => __('Espaço entre Slides', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SLIDER,
+                'size_units' => ['px'],
+                'range' => [
+                    'px' => [
+                        'min' => 0,
+                        'max' => 50,
+                    ],
+                ],
+                'default' => [
+                    'unit' => 'px',
+                    'size' => 24,
+                ],
+                'condition' => [
+                    'layout_type' => 'carousel',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_loop',
+            [
+                'label' => __('Loop Infinito', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => __('Sim', 'blog-pda'),
+                'label_off' => __('Não', 'blog-pda'),
+                'default' => 'yes',
+                'condition' => [
+                    'layout_type' => 'carousel',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_autoplay',
+            [
+                'label' => __('Autoplay', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => __('Sim', 'blog-pda'),
+                'label_off' => __('Não', 'blog-pda'),
+                'default' => 'yes',
+                'condition' => [
+                    'layout_type' => 'carousel',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_autoplay_speed',
+            [
+                'label' => __('Velocidade do Autoplay (ms)', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::NUMBER,
+                'default' => 5000,
+                'min' => 1000,
+                'max' => 10000,
+                'step' => 500,
+                'condition' => [
+                    'layout_type' => 'carousel',
+                    'carousel_autoplay' => 'yes',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_navigation',
+            [
+                'label' => __('Setas de Navegação', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => __('Sim', 'blog-pda'),
+                'label_off' => __('Não', 'blog-pda'),
+                'default' => 'yes',
+                'condition' => [
+                    'layout_type' => 'carousel',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_pagination',
+            [
+                'label' => __('Paginação (Dots)', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::SWITCHER,
+                'label_on' => __('Sim', 'blog-pda'),
+                'label_off' => __('Não', 'blog-pda'),
+                'default' => 'yes',
+                'condition' => [
+                    'layout_type' => 'carousel',
                 ],
             ]
         );
@@ -1287,6 +1403,94 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         );
 
         $this->end_controls_section();
+
+        // ========================================
+        // Style Section - Carousel
+        // ========================================
+        $this->start_controls_section(
+            'style_carousel_section',
+            [
+                'label' => __('Carrossel', 'blog-pda'),
+                'tab' => \Elementor\Controls_Manager::TAB_STYLE,
+                'condition' => [
+                    'layout_type' => 'carousel',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_nav_color',
+            [
+                'label' => __('Cor das Setas', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#702F8A',
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-carousel-prev, {{WRAPPER}} .bpw-carousel-next' => 'color: {{VALUE}}; border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_nav_bg_color',
+            [
+                'label' => __('Fundo das Setas', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#FFFFFF',
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-carousel-prev, {{WRAPPER}} .bpw-carousel-next' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_nav_hover_color',
+            [
+                'label' => __('Cor das Setas (Hover)', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#FFFFFF',
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-carousel-prev:hover, {{WRAPPER}} .bpw-carousel-next:hover' => 'color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_nav_hover_bg_color',
+            [
+                'label' => __('Fundo das Setas (Hover)', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#702F8A',
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-carousel-prev:hover, {{WRAPPER}} .bpw-carousel-next:hover' => 'background-color: {{VALUE}}; border-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_dots_color',
+            [
+                'label' => __('Cor dos Dots', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#E0E0E0',
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-carousel-pagination .swiper-pagination-bullet' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->add_control(
+            'carousel_dots_active_color',
+            [
+                'label' => __('Cor do Dot Ativo', 'blog-pda'),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'default' => '#702F8A',
+                'selectors' => [
+                    '{{WRAPPER}} .bpw-carousel-pagination .swiper-pagination-bullet-active' => 'background-color: {{VALUE}};',
+                ],
+            ]
+        );
+
+        $this->end_controls_section();
     }
 
     /**
@@ -1429,6 +1633,124 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             <?php endif; ?>
             
             <?php if (!empty($posts)) : ?>
+            
+            <?php if ($layout_type === 'carousel') : 
+                $widget_id = $this->get_id();
+                $slides_per_view = $settings['slides_per_view'] ?? '3';
+                $slides_per_view_tablet = $settings['slides_per_view_tablet'] ?? '2';
+                $slides_per_view_mobile = $settings['slides_per_view_mobile'] ?? '1';
+                $space_between = $settings['carousel_space_between']['size'] ?? 24;
+                $loop = $settings['carousel_loop'] === 'yes';
+                $autoplay = $settings['carousel_autoplay'] === 'yes';
+                $autoplay_speed = $settings['carousel_autoplay_speed'] ?? 5000;
+                $show_nav = $settings['carousel_navigation'] === 'yes';
+                $show_dots = $settings['carousel_pagination'] === 'yes';
+            ?>
+            <div class="bpw-carousel-wrapper">
+                <div class="swiper bpw-carousel" id="bpw-carousel-<?php echo esc_attr($widget_id); ?>">
+                    <div class="swiper-wrapper">
+                        <?php foreach ($posts as $post) : 
+                            $post_categories = get_the_terms($post->ID, 'blog_category');
+                        ?>
+                        <div class="swiper-slide">
+                            <article class="bpw-card">
+                                <a href="<?php echo get_permalink($post->ID); ?>" class="bpw-card-link">
+                                    <?php if ($show_image && has_post_thumbnail($post->ID)) : ?>
+                                    <div class="bpw-card-image bpw-ratio-<?php echo esc_attr($image_ratio); ?>">
+                                        <?php echo get_the_post_thumbnail($post->ID, 'medium_large'); ?>
+                                        <?php if ($show_category && $post_categories && !is_wp_error($post_categories)) : ?>
+                                        <span class="bpw-card-category"><?php echo esc_html($post_categories[0]->name); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <div class="bpw-card-content">
+                                        <h3 class="bpw-card-title"><?php echo esc_html($post->post_title); ?></h3>
+                                        <?php if ($show_date) : ?>
+                                        <span class="bpw-card-date"><?php echo get_the_date('d \d\e F \d\e Y', $post->ID); ?></span>
+                                        <?php endif; ?>
+                                        <?php if ($show_excerpt) : ?>
+                                        <p class="bpw-card-excerpt"><?php echo wp_trim_words(get_the_excerpt($post->ID), $excerpt_length); ?></p>
+                                        <?php endif; ?>
+                                        <?php if ($show_read_more) : ?>
+                                        <span class="bpw-card-read-more"><?php echo esc_html($read_more_text); ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                </a>
+                            </article>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+                
+                <?php if ($show_nav) : ?>
+                <button class="bpw-carousel-prev" id="bpw-prev-<?php echo esc_attr($widget_id); ?>" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+                <button class="bpw-carousel-next" id="bpw-next-<?php echo esc_attr($widget_id); ?>" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 6 15 12 9 18"></polyline>
+                    </svg>
+                </button>
+                <?php endif; ?>
+                
+                <?php if ($show_dots) : ?>
+                <div class="bpw-carousel-pagination" id="bpw-pagination-<?php echo esc_attr($widget_id); ?>"></div>
+                <?php endif; ?>
+            </div>
+            
+            <script>
+            (function() {
+                function initBPWCarousel() {
+                    if (typeof Swiper === 'undefined') {
+                        setTimeout(initBPWCarousel, 100);
+                        return;
+                    }
+                    
+                    new Swiper('#bpw-carousel-<?php echo esc_js($widget_id); ?>', {
+                        slidesPerView: <?php echo intval($slides_per_view_mobile); ?>,
+                        spaceBetween: <?php echo intval($space_between); ?>,
+                        loop: <?php echo $loop ? 'true' : 'false'; ?>,
+                        <?php if ($autoplay) : ?>
+                        autoplay: {
+                            delay: <?php echo intval($autoplay_speed); ?>,
+                            disableOnInteraction: false,
+                            pauseOnMouseEnter: true,
+                        },
+                        <?php endif; ?>
+                        <?php if ($show_nav) : ?>
+                        navigation: {
+                            nextEl: '#bpw-next-<?php echo esc_js($widget_id); ?>',
+                            prevEl: '#bpw-prev-<?php echo esc_js($widget_id); ?>',
+                        },
+                        <?php endif; ?>
+                        <?php if ($show_dots) : ?>
+                        pagination: {
+                            el: '#bpw-pagination-<?php echo esc_js($widget_id); ?>',
+                            clickable: true,
+                        },
+                        <?php endif; ?>
+                        breakpoints: {
+                            768: {
+                                slidesPerView: <?php echo intval($slides_per_view_tablet); ?>,
+                            },
+                            1024: {
+                                slidesPerView: <?php echo intval($slides_per_view); ?>,
+                            },
+                        },
+                    });
+                }
+                
+                if (document.readyState === 'complete') {
+                    initBPWCarousel();
+                } else {
+                    window.addEventListener('load', initBPWCarousel);
+                }
+            })();
+            </script>
+            
+            <?php else : ?>
             <div class="bpw-<?php echo $layout_type === 'list' ? 'list' : 'grid'; ?>">
                 <?php foreach ($posts as $post) : 
                     $post_categories = get_the_terms($post->ID, 'blog_category');
@@ -1459,6 +1781,8 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                 </article>
                 <?php endforeach; ?>
             </div>
+            <?php endif; ?>
+            
             <?php endif; ?>
             
         </div>
@@ -1716,6 +2040,105 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             
             .bpw-header-title {
                 font-size: 24px;
+            }
+        }
+        
+        /* Carousel Styles */
+        .bpw-carousel-wrapper {
+            position: relative;
+            padding: 0 50px;
+        }
+        
+        .bpw-carousel {
+            overflow: hidden;
+        }
+        
+        .bpw-carousel .swiper-slide {
+            height: auto;
+        }
+        
+        .bpw-carousel .bpw-card {
+            height: 100%;
+        }
+        
+        .bpw-carousel-prev,
+        .bpw-carousel-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border: 2px solid #702F8A;
+            border-radius: 50%;
+            color: #702F8A;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .bpw-carousel-prev {
+            left: 0;
+        }
+        
+        .bpw-carousel-next {
+            right: 0;
+        }
+        
+        .bpw-carousel-prev:hover,
+        .bpw-carousel-next:hover {
+            background: #702F8A;
+            color: #fff;
+            border-color: #702F8A;
+        }
+        
+        .bpw-carousel-prev svg,
+        .bpw-carousel-next svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .bpw-carousel-pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 24px;
+        }
+        
+        .bpw-carousel-pagination .swiper-pagination-bullet {
+            width: 10px;
+            height: 10px;
+            background: #E0E0E0;
+            border-radius: 50%;
+            opacity: 1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .bpw-carousel-pagination .swiper-pagination-bullet-active {
+            background: #702F8A;
+            transform: scale(1.2);
+        }
+        
+        @media (max-width: 767px) {
+            .bpw-carousel-wrapper {
+                padding: 0 40px;
+            }
+            
+            .bpw-carousel-prev,
+            .bpw-carousel-next {
+                width: 36px;
+                height: 36px;
+            }
+            
+            .bpw-carousel-prev svg,
+            .bpw-carousel-next svg {
+                width: 16px;
+                height: 16px;
             }
         }
         </style>
