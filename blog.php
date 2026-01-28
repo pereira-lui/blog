@@ -3,7 +3,7 @@
  * Plugin Name: Blog PDA
  * Plugin URI: https://github.com/pereira-lui/blog
  * Description: Plugin de Blog personalizado para WordPress. Cria um Custom Post Type "Blog" com templates personalizados, suporte a importação e atualização automática via GitHub.
- * Version: 2.5.1
+ * Version: 2.5.2
  * Author: Lui
  * Author URI: https://github.com/pereira-lui
  * Text Domain: blog-pda
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('BLOG_PDA_VERSION', '2.5.1');
+define('BLOG_PDA_VERSION', '2.5.2');
 define('BLOG_PDA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('BLOG_PDA_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('BLOG_PDA_PLUGIN_FILE', __FILE__);
@@ -2261,35 +2261,39 @@ final class Blog_PDA {
      * Enqueue frontend assets
      */
     public function enqueue_frontend_assets() {
+        // Registrar Swiper globalmente para uso no Elementor
+        wp_register_style(
+            'swiper',
+            'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
+            [],
+            '11.0.0'
+        );
+        
+        wp_register_script(
+            'swiper',
+            'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
+            [],
+            '11.0.0',
+            true
+        );
+        
         if (is_singular('blog_post') || is_post_type_archive('blog_post') || is_tax('blog_category') || is_tax('blog_tag')) {
             // Swiper Slider
-            wp_enqueue_style(
-                'swiper-css',
-                'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css',
-                [],
-                '11.0.0'
-            );
-            
-            wp_enqueue_script(
-                'swiper-js',
-                'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js',
-                [],
-                '11.0.0',
-                true
-            );
+            wp_enqueue_style('swiper');
+            wp_enqueue_script('swiper');
             
             // Plugin styles
             wp_enqueue_style(
                 'blog-pda-style',
                 BLOG_PDA_PLUGIN_URL . 'assets/css/blog-style.css',
-                ['swiper-css'],
+                ['swiper'],
                 BLOG_PDA_VERSION
             );
             
             wp_enqueue_script(
                 'blog-pda-script',
                 BLOG_PDA_PLUGIN_URL . 'assets/js/blog-script.js',
-                ['swiper-js'],
+                ['swiper'],
                 BLOG_PDA_VERSION,
                 true
             );

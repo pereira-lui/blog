@@ -707,6 +707,20 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
     }
 
     /**
+     * Get script dependencies
+     */
+    public function get_script_depends() {
+        return ['swiper'];
+    }
+
+    /**
+     * Get style dependencies
+     */
+    public function get_style_depends() {
+        return ['swiper'];
+    }
+
+    /**
      * Get all blog posts for selection
      */
     private function get_blog_posts_options() {
