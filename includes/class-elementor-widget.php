@@ -1664,27 +1664,15 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                             $post_categories = get_the_terms($post->ID, 'blog_category');
                         ?>
                         <div class="swiper-slide">
-                            <article class="bpw-card">
+                            <article class="bpw-card bpw-card-overlay">
                                 <a href="<?php echo get_permalink($post->ID); ?>" class="bpw-card-link">
-                                    <?php if ($show_image && has_post_thumbnail($post->ID)) : ?>
+                                    <?php if (has_post_thumbnail($post->ID)) : ?>
                                     <div class="bpw-card-image bpw-ratio-<?php echo esc_attr($image_ratio); ?>">
                                         <?php echo get_the_post_thumbnail($post->ID, 'medium_large'); ?>
-                                        <?php if ($show_category && $post_categories && !is_wp_error($post_categories)) : ?>
-                                        <span class="bpw-card-category"><?php echo esc_html($post_categories[0]->name); ?></span>
-                                        <?php endif; ?>
                                     </div>
                                     <?php endif; ?>
-                                    <div class="bpw-card-content">
+                                    <div class="bpw-card-overlay-content">
                                         <h3 class="bpw-card-title"><?php echo esc_html($post->post_title); ?></h3>
-                                        <?php if ($show_date) : ?>
-                                        <span class="bpw-card-date"><?php echo get_the_date('d \d\e F \d\e Y', $post->ID); ?></span>
-                                        <?php endif; ?>
-                                        <?php if ($show_excerpt) : ?>
-                                        <p class="bpw-card-excerpt"><?php echo wp_trim_words(get_the_excerpt($post->ID), $excerpt_length); ?></p>
-                                        <?php endif; ?>
-                                        <?php if ($show_read_more) : ?>
-                                        <span class="bpw-card-read-more"><?php echo esc_html($read_more_text); ?></span>
-                                        <?php endif; ?>
                                     </div>
                                 </a>
                             </article>
@@ -1694,14 +1682,9 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
                 </div>
                 
                 <?php if ($show_nav) : ?>
-                <button class="bpw-carousel-prev" id="bpw-prev-<?php echo esc_attr($widget_id); ?>" aria-label="<?php _e('Anterior', 'blog-pda'); ?>">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                    </svg>
-                </button>
                 <button class="bpw-carousel-next" id="bpw-next-<?php echo esc_attr($widget_id); ?>" aria-label="<?php _e('Próximo', 'blog-pda'); ?>">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="9 6 15 12 9 18"></polyline>
+                        <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                 </button>
                 <?php endif; ?>
@@ -2057,7 +2040,6 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         /* Carousel Styles */
         .bpw-carousel-wrapper {
             position: relative;
-            padding: 0 50px;
         }
         
         .bpw-carousel {
@@ -2072,42 +2054,75 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
             height: 100%;
         }
         
-        .bpw-carousel-prev,
+        /* Overlay Card Style for Carousel */
+        .bpw-card-overlay {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .bpw-card-overlay .bpw-card-link {
+            display: block;
+            position: relative;
+        }
+        
+        .bpw-card-overlay .bpw-card-image {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .bpw-card-overlay .bpw-card-image img {
+            transition: transform 0.4s ease;
+        }
+        
+        .bpw-card-overlay:hover .bpw-card-image img {
+            transform: scale(1.05);
+        }
+        
+        .bpw-card-overlay-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 60px 20px 20px 20px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
+            border-radius: 0 0 16px 16px;
+        }
+        
+        .bpw-card-overlay .bpw-card-title {
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.4;
+            margin: 0;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
         .bpw-carousel-next {
             position: absolute;
             top: 50%;
+            right: 20px;
             transform: translateY(-50%);
             width: 44px;
             height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #fff;
-            border: 2px solid #702F8A;
+            background: #F57C00;
+            border: none;
             border-radius: 50%;
-            color: #702F8A;
+            color: #fff;
             cursor: pointer;
             z-index: 10;
             transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(245, 124, 0, 0.4);
         }
         
-        .bpw-carousel-prev {
-            left: 0;
-        }
-        
-        .bpw-carousel-next {
-            right: 0;
-        }
-        
-        .bpw-carousel-prev:hover,
         .bpw-carousel-next:hover {
-            background: #702F8A;
-            color: #fff;
-            border-color: #702F8A;
+            background: #E65100;
+            transform: translateY(-50%) scale(1.1);
         }
         
-        .bpw-carousel-prev svg,
         .bpw-carousel-next svg {
             width: 20px;
             height: 20px;
@@ -2136,20 +2151,23 @@ class Blog_PDA_Posts_Grid_Widget extends \Elementor\Widget_Base {
         }
         
         @media (max-width: 767px) {
-            .bpw-carousel-wrapper {
-                padding: 0 40px;
-            }
-            
-            .bpw-carousel-prev,
             .bpw-carousel-next {
                 width: 36px;
                 height: 36px;
+                right: 10px;
             }
             
-            .bpw-carousel-prev svg,
             .bpw-carousel-next svg {
                 width: 16px;
                 height: 16px;
+            }
+            
+            .bpw-card-overlay .bpw-card-title {
+                font-size: 14px;
+            }
+            
+            .bpw-card-overlay-content {
+                padding: 40px 15px 15px 15px;
             }
         }
         </style>
